@@ -1,8 +1,11 @@
 For connecting to popy with ssh:
 
-ssh poppy@{ip adress}
+ssh poppy@poppy.local
 password: poppy
 
+source robot_env/bin/activate -> activate virtual environment
+
+./robot_env/bin/python -m pip install pypot
 from pypot.creatures import PoppyHumanoid
 poppy = PoppyHumanoid()
 poppy.head_z.goal_position = 20
