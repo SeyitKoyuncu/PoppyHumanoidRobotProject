@@ -6,6 +6,10 @@ password: poppy
 source robot_env/bin/activate -> activate virtual environment
 
 ./robot_env/bin/python -m pip install pypot
+
+sudo pkill -9 -f python
+sudo fuser -k /dev/ttyACM0
+
 from pypot.creatures import PoppyHumanoid
 poppy = PoppyHumanoid()
 poppy.head_z.goal_position = 20
