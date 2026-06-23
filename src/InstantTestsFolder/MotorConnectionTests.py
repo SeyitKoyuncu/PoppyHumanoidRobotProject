@@ -59,9 +59,9 @@ if expected_motors:
         
         # Now it looks at the list returned from the hardware, not the manually written list
         if m_id in found_ids:
-            status = "✅ Connection OK"
+            status = "[APPROVED] Connection OK"
         else:
-            status = "❌ Can not connected"
+            status = "[ERROR] Can not connected"
             missing_count += 1
             
         print(f"{name:<22} | {m_id:<12} | {status:<15}")

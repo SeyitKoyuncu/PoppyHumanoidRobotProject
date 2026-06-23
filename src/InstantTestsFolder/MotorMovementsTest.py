@@ -5,6 +5,9 @@ import math
 import pypot.dynamixel
 import poppy_humanoid
 import serial.tools.list_ports
+import sys
+import os
+from Controllers.MotorRelaxController import force_relax_motors
 
 def test_working_motors_low_level(port_motor_map):
     """
@@ -27,11 +30,11 @@ def test_working_motors_low_level(port_motor_map):
         try:
             # Connect to the specific port for this batch of motors
             dxl_io = pypot.dynamixel.DxlIO(port, use_sync_read=False)
-            print(f"✅ Connection successful on {port}!\n")
+            print(f"[APPROVED] Connection successful on {port}!\n")
             
             for m_id in m_ids:
                 if not dxl_io.ping(m_id):
-                    print(f"❌ ID {m_id} is unreachable on {port}, skipping...")
+                    print(f"[ERROR] ID {m_id} is unreachable on {port}, skipping...")
                     continue
                     
                 print(f"> Testing Motor ID: {m_id} on {port}...")
@@ -73,7 +76,7 @@ def test_working_motors_low_level(port_motor_map):
             # Ensure the specific port is closed before moving to the next USB port
             if dxl_io is not None:
                 dxl_io.close()
-                print(f"🔒 Port {port} successfully closed and released.")
+                print(f"[INFO] Port {port} successfully closed and released.")
 
 if __name__ == '__main__':
     # 1. Dynamically find all USB ports belonging to the motors (VID: 5840 / 0x16D0)
@@ -133,16 +136,21 @@ if __name__ == '__main__':
         for name, info in sorted(expected_motors.items(), key=lambda x: x[1].get('id', 0)):
             m_id = info.get('id')
             if m_id in total_found_ids:
-                print(f"{name:<22} | {m_id:<12} | ✅ OK")
+                print(f"{name:<22} | {m_id:<12} | [APPROVED] OK")
             else:
-                print(f"{name:<22} | {m_id:<12} | ❌ MISSING")
+                print(f"{name:<22} | {m_id:<12} | [ERROR] MISSING")
                 missing_count += 1
                 
         print("=" * 56)
         print(f"Ready to test {len(total_found_ids)} motors across {len(port_motor_map)} ports. {missing_count} motors are missing.")
         
         # 5. Start the low-level hardware test passing the dynamic map
-        #test_working_motors_low_level(port_motor_map)
-        
+        try:
+            test_working_motors_low_level(port_motor_map)
+            force_relax_motors()
+        except Exception as e:
+            force_relax_motors()
+
     elif not total_found_ids:
         print("\n[WARNING] No motors were found on the bus. Hardware test aborted.")
+        force_relax_motors()
