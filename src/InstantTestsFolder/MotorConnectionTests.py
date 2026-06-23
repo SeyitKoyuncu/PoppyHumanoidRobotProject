@@ -2,19 +2,38 @@ import os
 import json
 import pypot.dynamixel
 import poppy_humanoid
+import serial
 
-# 1. Perform real-time hardware scan
 found_ids = []
 try:
-    ports = pypot.dynamixel.get_available_ports()
-    if not ports:
-        print("[ERROR] No USB port found!")
+    # Find all serial ports
+    all_devices = serial.tools.list_ports.comports()
+    
+    motor_ports = []
+    for device in all_devices:
+        #print(device.vid)
+        if device.vid == 5840: 
+            motor_ports.append(device.device)
+            
+    if not motor_ports:
+        print("[ERROR] Cant Find any dynamxiel port!")
     else:
-        port = ports[0]
-        # Open the port and actually scan all motors between 0-253
-        with pypot.dynamixel.DxlIO(port) as dxl_io:
-            print("Scanning hardware, please wait...")
-            found_ids = dxl_io.scan(range(254))
+        print(f"Filtered Motor Control Ports: {motor_ports}")
+        
+        # Just scan filterd ports
+        for port in motor_ports:
+            print(f"\n>>> [{port}] Scanning, Please Wait...")
+            try:
+                with pypot.dynamixel.DxlIO(port, use_sync_read=False) as dxl_io:
+                    ids_in_port = dxl_io.scan(range(254))
+                    print(f"Motors on [{port}]: {ids_in_port}")
+                    found_ids.extend(ids_in_port)
+            except Exception as port_error:
+                print(f"[ERROR] When reading {port}: {port_error}")
+        
+        found_ids = sorted(list(set(found_ids)))
+        print(f"\n All unique Motor IDs: {found_ids}")
+
 except Exception as e:
     print(f"Hardware scan error: {e}")
 
