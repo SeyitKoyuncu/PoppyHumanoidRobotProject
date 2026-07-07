@@ -1,97 +1,92 @@
 import time
 import math
-#from pypot.creatures import PoppyHumanoid
 from pypot.creatures import PoppyTorso
+from Controllers.MotorRelaxController import relax_motors
 
 class WaveMotion:
-    """A class containing smooth movement trajectories for the Poppy Humanoid."""
+    """A class containing smooth movement trajectories for the Poppy Torso."""
     
     def __init__(self, robot):
         self.robot = robot
+        # We define the specific motors needed for the left arm gesture.
+        # Since there is no wrist joint, 'l_arm_z' will rotate the whole forearm.
+        self.left_arm_motors = ['l_shoulder_y', 'l_shoulder_x', 'l_arm_z', 'l_elbow_y']
 
     def check_left_arm(self):
-        """Checks if the left arm motors are present in the system."""
-        required_motors = ['l_shoulder_y', 'l_shoulder_x', 'l_elbow_y', 'l_arm_z']
-        for motor_name in required_motors:
+        """Checks if all required left arm motors are active in the configuration."""
+        for motor_name in self.left_arm_motors:
             if not hasattr(self.robot, motor_name) or getattr(self.robot, motor_name) is None:
-                print(f"[ERROR] {motor_name} not found! The left arm is either disconnected or inactive.")
+                print(f"[ERROR] {motor_name} not found! Check connection.")
                 return False
         return True
 
-    def wave_left_hand(self, duration=5.0, speed=6.0, amplitude=30.0):
-        """
-        Raises the left arm and waves it in a human-like manner.
-        
-        Parameters:
-            duration (float): The duration of the waving motion in seconds.
-            speed (float): The waving speed (Sine wave frequency).
-            amplitude (float): The waving angle amplitude of the hand.
-        """
+    def wave_left_hand(self, duration=5.0, speed=6.0, amplitude=120.0):
+        """Raises the forearm using the elbow and rotates it to create a waving effect."""
         if not self.check_left_arm():
             return
 
-        print("\n Raising the left arm...")
-        
-        # 1. PREPARATION POSITION: Raise the arm and bend the elbow
-        # All motors move simultaneously using goto_position(target, duration, wait=False)
-        #self.robot.l_shoulder_y.goto_position(5, 4, wait=False) # Raise the arm forward
-        #self.robot.l_shoulder_x.goto_position(-25, 2, wait=False)  # Slightly open the arm outward
-        self.robot.l_arm_z.goto_position(0, 2, wait=False)        # Straighten the wrist
-        #self.robot.l_elbow_y.goto_position(-10, 2, wait=True)     # Bend the elbow (wait=True waits for completion)
+        print("\n[STEP 1] Locking ONLY the left arm motors...")
+        # To prevent other body parts from twitching, we engage ONLY the left arm.
+        # Every other motor on the robot stays completely relaxed (compliant = True).
+        for motor_name in self.left_arm_motors:
+            motor = getattr(self.robot, motor_name)
+            motor.goal_position = motor.present_position
+            motor.compliant = False
+            motor.torque_limit = 20.0
 
-        print(f"Waving animation started ({duration} seconds)...")
-        
-        # 2. WAVING LOOP: Smooth hand waving using a sine wave
+        time.sleep(0.5)  # Short pause to let motors stabilize
+
+        print("[STEP 2] Bringing the arm to the waving posture...")
+        starting_l_shoulder_x = self.robot.l_shoulder_x.present_position
+        starting_l_arm_z = self.robot.l_arm_z.present_position
+        starting_l_elbow_y = self.robot.l_elbow_y.present_position
+        # We bring the arm forward and bend the elbow so the hand points upwards.
+        self.robot.l_shoulder_x.goto_position(90, 1.5, wait=True) # Keep the arm slightly away from body 
+        self.robot.l_arm_z.goto_position(90, 1.5, wait=True) # Rotate arm
+        self.robot.l_elbow_y.goto_position(-60, 1.5, wait=True) # Bend the elbow sharply so hand faces up
+
+        print(f"[STEP 3] Starting the wave loop ({duration} seconds)...")
         start_time = time.time()
+        base_elbow_angle = -60.0 
         while time.time() - start_time < duration:
             t = time.time() - start_time
             
-            # Rotate the wrist (arm_z) left and right
-            wave_angle = amplitude * math.sin(speed * t)
-            #self.robot.l_arm_z.goal_position = wave_angle
+            # Since there is no joint right at the wrist, we rotate 'l_elbow_y'.
+            # This turns the entire forearm axis left and right, making the hand wave.
+            wave_angle = base_elbow_angle + (amplitude * math.sin(speed * t))
+            self.robot.l_elbow_y.goto_position(wave_angle + 20, duration = 0.1, wait = False)
             
-            # Slightly bounce the elbow (elbow_y) for a natural, human-like look
-            bounce_angle = -70 + (10 * math.cos(speed * t))
-            #self.robot.l_elbow_y.goal_position = bounce_angle
-            
-            # A tiny delay to prevent the loop from running too fast (50Hz refresh rate)
-            time.sleep(0.02)
+            # 20Hz refresh rate to ensure smooth communication with the Dynamixel motors
+            time.sleep(0.05)
 
-        print("Returning the arm to the starting position (0)...")
+        print("[STEP 4] Resetting arm smoothly to default position...")
+        # Return all arm angles back to 0 before releasing torque.
+        self.robot.l_elbow_y.goto_position(starting_l_elbow_y, 1.0, wait=True) # Rotate elbow to initial position
+        self.robot.l_arm_z.goto_position(starting_l_arm_z, 1.5, wait=True) # Rotate arm to initial position
+        self.robot.l_shoulder_x.goto_position(starting_l_shoulder_x, 1.5, wait=True) # Rotate Shoulder to initial position 
+
+
         
-        # 3. ENDING: Slowly lower the arm back to the default position
-        #self.robot.l_shoulder_y.goto_position(0, 2, wait=False)
-        #self.robot.l_shoulder_x.goto_position(0, 2, wait=False)
-        #self.robot.l_elbow_y.goto_position(0, 2, wait=False)
-        #self.robot.l_arm_z.goto_position(0, 2, wait=True)
-        
-        print("Waving motion completed!")
+        print("[INFO] Waving motion completed successfully!")
 
-
-# --- MAIN EXECUTION (For testing) ---
+# --- MAIN EXECUTION ---
 if __name__ == '__main__':
     poppy = None
     try:
-        # Use check_full_config=False to bypass previous connection lock issues
-        #poppy = PoppyHumanoid(check_full_config=False)
-        poppy = PoppyTorso(check_full_config=False, camera = 'dummy')
+        # Initialize Poppy Torso with camera disabled to prevent port locks
+        poppy = PoppyTorso(check_full_config=False, camera='dummy')
         
-        # Make motors stiff (compliant = False) so they can move
+        print("Ensuring all motors start in relaxed mode...")
         for m in poppy.motors:
-            m.goal_position = m.present_position
-            m.compliant = False
+            m.compliant = True
             
-        # Initialize the class and start the motion
+        # Run the waving sequence
         action = WaveMotion(poppy)
-        action.wave_left_hand(duration=4.0)
+        #ElbowTest()
+        action.wave_left_hand(duration=5.0)
 
     except Exception as e:
         print(f"\n[SYSTEM ERROR] {e}")
 
     finally:
-        # Release motors and SECURELY CLOSE THE PORT even if the code crashes
-        if poppy is not None:
-            for m in poppy.motors:
-                m.compliant = True
-            poppy.close()
-            print("Port successfully closed and released.")
+        relax_motors(poppy)
