@@ -3,7 +3,7 @@ import os
 import time
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QRadioButton, QComboBox, 
-                             QTextEdit, QLabel, QGroupBox)
+                             QTextEdit, QLabel, QGroupBox, QDoubleSpinBox) # QDoubleSpinBox EKLENDI
                              
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, "../../"))
@@ -22,7 +22,7 @@ class PoppyTesterApp(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle("Poppy Humanoid Control Center")
-        self.resize(750, 600)
+        self.resize(750, 650)
 
         main_widget = QWidget()
         main_layout = QHBoxLayout() 
@@ -41,28 +41,74 @@ class PoppyTesterApp(QMainWindow):
         left_panel.addWidget(mode_group)
 
         conn_layout = QHBoxLayout()
+        # Connect btn
         self.btn_connect = QPushButton("Connect")
         self.btn_connect.clicked.connect(self.connect_robot)
+        
+        # Disconnect btn
         self.btn_disconnect = QPushButton("Disconnect")
         self.btn_disconnect.clicked.connect(self.disconnect_robot)
         self.btn_disconnect.setEnabled(False)
+        
         conn_layout.addWidget(self.btn_connect)
         conn_layout.addWidget(self.btn_disconnect)
         left_panel.addLayout(conn_layout)
 
+        # Motor Control Group
         control_group = QGroupBox("Motor Control")
         control_layout = QVBoxLayout()
+        
+        # Combobox
         self.combo_motors = QComboBox()
         self.combo_motors.addItem("All Motors (Sequentially)")
+        control_layout.addWidget(QLabel("Select Motor:"))
+        control_layout.addWidget(self.combo_motors)
         
+        # Motor Test Button
         self.btn_run = QPushButton("Test Motor")
         self.btn_run.clicked.connect(self.run_motor_test)
         self.btn_run.setEnabled(False)
-        control_layout.addWidget(QLabel("Select Motor:"))
-        control_layout.addWidget(self.combo_motors)
         control_layout.addWidget(self.btn_run)
+
+        custom_angle_layout = QHBoxLayout()
+        custom_angle_layout.addWidget(QLabel("Target Angle:"))
+        
+        self.spin_angle = QDoubleSpinBox()
+        self.spin_angle.setRange(-180.0, 180.0) # Motor açı sınırları
+        self.spin_angle.setValue(0.0)
+        
+        self.btn_goto = QPushButton("Go To Angle")
+        self.btn_goto.clicked.connect(self.goto_custom_angle)
+        self.btn_goto.setEnabled(False)
+        
+        custom_angle_layout.addWidget(self.spin_angle)
+        custom_angle_layout.addWidget(self.btn_goto)
+        
+        control_layout.addLayout(custom_angle_layout)
+        
+        # Added Line For Visual Separation
+        line = QWidget()
+        line.setFixedHeight(1)
+        line.setStyleSheet("background-color: #c0c0c0;")
+        control_layout.addWidget(line)
+
+        # Rady Position Buttons
+        control_layout.addWidget(QLabel("Preset Poses:"))
+        
+        self.btn_rest = QPushButton("Set Rest (Lying) Position")
+        self.btn_rest.clicked.connect(self.set_rest_position)
+        self.btn_rest.setEnabled(False) 
+
+        self.btn_stand = QPushButton("Stand Up")
+        self.btn_stand.clicked.connect(self.stand_up)
+        self.btn_stand.setEnabled(False) 
+
+        control_layout.addWidget(self.btn_rest)
+        control_layout.addWidget(self.btn_stand)
+        
         control_group.setLayout(control_layout)
         left_panel.addWidget(control_group)
+        # -----------------------------------------------------
 
         log_group = QGroupBox("System Logs")
         log_layout = QVBoxLayout()
@@ -71,7 +117,6 @@ class PoppyTesterApp(QMainWindow):
         log_layout.addWidget(self.log_screen)
         log_group.setLayout(log_layout)
         left_panel.addWidget(log_group)
-
 
         # Right panel for virtual emotion face
         right_panel = QVBoxLayout()
@@ -85,7 +130,6 @@ class PoppyTesterApp(QMainWindow):
         btn_layout = QHBoxLayout()
         for emotion in ["neutral", "happy", "angry", "sad"]:
             btn = QPushButton(emotion.capitalize())
-            # Python'un closure mantığı için lambda içinde e=emotion kullanıyoruz
             btn.clicked.connect(lambda checked, e=emotion: self.set_robot_emotion(e))
             btn_layout.addWidget(btn)
 
@@ -112,7 +156,6 @@ class PoppyTesterApp(QMainWindow):
     def set_robot_emotion(self, emotion_type):
         self.log_message(f"Emotion changed to: {emotion_type.upper()}")
         self.virtual_face.change_emotion(emotion_type)
-        # TODO: Will add HTTP request to real robot to change LED colors based on emotion
 
     def connect_robot(self):
         self.log_message("Connecting... Please wait.")
@@ -126,6 +169,9 @@ class PoppyTesterApp(QMainWindow):
             self.btn_connect.setEnabled(False)
             self.btn_disconnect.setEnabled(True)
             self.btn_run.setEnabled(True)
+            self.btn_goto.setEnabled(True)
+            self.btn_stand.setEnabled(True)
+            self.btn_rest.setEnabled(True)
             self.update_motor_combobox()
 
     def disconnect_robot(self):
@@ -134,6 +180,9 @@ class PoppyTesterApp(QMainWindow):
         self.btn_connect.setEnabled(True)
         self.btn_disconnect.setEnabled(False)
         self.btn_run.setEnabled(False)
+        self.btn_goto.setEnabled(False)
+        self.btn_stand.setEnabled(False)
+        self.btn_rest.setEnabled(False)
         self.combo_motors.clear()
         self.combo_motors.addItem("All Motors (Sequentially)")
 
@@ -161,6 +210,75 @@ class PoppyTesterApp(QMainWindow):
             self.controller.test_single_motor_smoothly(motor, QApplication.processEvents)
             self.log_message(f"{selection} test completed.")
 
+    # Send go to function to spesic motor with custom angle
+    def goto_custom_angle(self):
+        selection = self.combo_motors.currentText()
+        
+        if selection == "All Motors (Sequentially)":
+            self.log_message("WARNING: Please select a specific motor from the list first.")
+            return
+            
+        target_angle = self.spin_angle.value()
+        duration = 2.0 
+        
+        try:
+            self.log_message(f"Moving {selection} to {target_angle} degrees...")
+            motor = self.controller.get_motor_by_name(selection)
+            if motor:
+                motor.goto_position(target_angle, duration, wait=False)
+        except Exception as e:
+            self.log_message(f"Error moving {selection}: {str(e)}")
+
+    def set_rest_position(self):
+        self.log_message("Setting robot to flat resting position...")
+        try:
+            for motor in self.controller.get_all_motors():
+                motor.goal_position = 0 
+                
+            self.log_message("Robot is now lying flat.")
+        except Exception as e:
+            self.log_message(f"Error setting rest position: {str(e)}")
+
+    def motor_movement_go_to(self, target_angles, duration, movement_name, waitSituation=True):
+        try:
+            self.log_message(f"Performing {movement_name}...")
+
+            for motor_name, target_angle in target_angles.items():
+                motor = self.controller.get_motor_by_name(motor_name)
+                if motor:
+                    motor.goto_position(target_angle, duration, wait=waitSituation)
+            
+            self.log_message(f"{movement_name} completed.")
+        except Exception as e:
+            self.log_message(f"Error in {movement_name}: {str(e)}")
+
+    def stand_up(self):
+        # First Step: Move hip, knees, and ankles to bend the legs
+        duration = 5.0  # Duration for the movement
+        target_angles_step1 = {
+            'l_hip_y': 45.0,
+            'r_hip_y': 45.0,
+            'l_knee_y': 90.0,
+            'r_knee_y': 90.0,
+            'l_ankle_y': 45.0,
+            'r_ankle_y': 45.0
+        }
+        
+        self.motor_movement_go_to(target_angles_step1, duration, "Bending Legs", False)
+
+        time.sleep(5)  # Wait for the robot to ensure it stabilizes
+
+        # Second Step: Move hip motors to lift the torso
+        '''
+        target_angles_step2 = {
+                    'abs_y': 30.0,       
+                    'bust_y': 20.0,      
+                    'head_y': 20.0,      
+                    'l_hip_y': -60.0,    
+                    'r_hip_y': -60.0     
+                }
+        self.motor_movement_go_to(target_angles_step2, duration, "Lifting Torso")
+        '''
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = PoppyTesterApp()
