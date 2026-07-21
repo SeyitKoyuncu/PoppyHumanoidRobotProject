@@ -78,7 +78,11 @@ class PoppyTesterApp(QMainWindow):
         self.spin_angle.setValue(0.0)
         
         self.btn_goto = QPushButton("Go To Angle")
-        self.btn_goto.clicked.connect(self.goto_custom_angle)
+        self.btn_goto.clicked.connect(lambda: self.controller.goto_custom_angle(
+            logFunction=self.log_message,
+            motor=self.controller.get_motor_by_name(self.combo_motors.currentText()),
+            target_angle=self.spin_angle.value()
+        ))
         self.btn_goto.setEnabled(False)
         
         custom_angle_layout.addWidget(self.spin_angle)
@@ -210,25 +214,6 @@ class PoppyTesterApp(QMainWindow):
             self.controller.test_single_motor_smoothly(motor, QApplication.processEvents)
             self.log_message(f"{selection} test completed.")
 
-    # Send go to function to spesic motor with custom angle
-    def goto_custom_angle(self):
-        selection = self.combo_motors.currentText()
-        
-        if selection == "All Motors (Sequentially)":
-            self.log_message("WARNING: Please select a specific motor from the list first.")
-            return
-            
-        target_angle = self.spin_angle.value()
-        duration = 2.0 
-        
-        try:
-            self.log_message(f"Moving {selection} to {target_angle} degrees...")
-            motor = self.controller.get_motor_by_name(selection)
-            if motor:
-                motor.goto_position(target_angle, duration, wait=False)
-        except Exception as e:
-            self.log_message(f"Error moving {selection}: {str(e)}")
-
     def set_rest_position(self):
         self.log_message("Setting robot to flat resting position...")
         try:
@@ -239,46 +224,149 @@ class PoppyTesterApp(QMainWindow):
         except Exception as e:
             self.log_message(f"Error setting rest position: {str(e)}")
 
-    def motor_movement_go_to(self, target_angles, duration, movement_name, waitSituation=True):
-        try:
-            self.log_message(f"Performing {movement_name}...")
-
-            for motor_name, target_angle in target_angles.items():
-                motor = self.controller.get_motor_by_name(motor_name)
-                if motor:
-                    motor.goto_position(target_angle, duration, wait=waitSituation)
-            
-            self.log_message(f"{movement_name} completed.")
-        except Exception as e:
-            self.log_message(f"Error in {movement_name}: {str(e)}")
-
     def stand_up(self):
-        # First Step: Move hip, knees, and ankles to bend the legs
-        duration = 5.0  # Duration for the movement
-        target_angles_step1 = {
-            'l_hip_y': 45.0,
-            'r_hip_y': 45.0,
-            'l_knee_y': 90.0,
-            'r_knee_y': 90.0,
-            'l_ankle_y': 45.0,
-            'r_ankle_y': 45.0
+        # STEP 1: Slight Crunch
+        target_step_1 = {
+            # Legs are fixed at 0.0 (Acting as an anchor)
+            'l_hip_y': 0.0, 
+            'r_hip_y': 0.0,
+            
+            # Lift the waist and chest slightly
+            'abs_y': 15.0,  
+            'bust_y': 5.0
         }
         
-        self.motor_movement_go_to(target_angles_step1, duration, "Bending Legs", False)
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_1, 
+            duration=1.0, # Short and controlled duration
+            movement_name="Step 1: Slight Crunch", 
+            waitSituation=True
+        )
 
-        time.sleep(5)  # Wait for the robot to ensure it stabilizes
+        time.sleep(1)  # Wait for the robot to ensure it stabilizes
 
+
+        # STEP 2: Bend Elbows
+        target_step_2 = {
+            # Legs are still fixed at 0.0
+            'l_hip_y': 0.0, 
+            'r_hip_y': 0.0,
+            
+            # MAINTAIN the slightly lifted angle of the torso (Otherwise it falls back)
+            'abs_y': 15.0,  
+            'bust_y': 5.0,
+            
+            # Bend elbows 90 degrees (It might need to be -90.0 depending on the motor direction)
+            'l_elbow_y': 90.0, 
+            'r_elbow_y': 90.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_2, 
+            duration=1.0, 
+            movement_name="Step 2: Bend Elbows", 
+            waitSituation=True
+        )
+
+        time.sleep(1)
         # Second Step: Move hip motors to lift the torso
-        '''
-        target_angles_step2 = {
-                    'abs_y': 30.0,       
-                    'bust_y': 20.0,      
-                    'head_y': 20.0,      
-                    'l_hip_y': -60.0,    
-                    'r_hip_y': -60.0     
-                }
-        self.motor_movement_go_to(target_angles_step2, duration, "Lifting Torso")
-        '''
+        
+        # STEP 3: Full Sit-up and Opening Arms
+        target_step_3 = {
+            # Legs continue to stay fixed at 0.0
+            'l_hip_y': 0.0, 
+            'r_hip_y': 0.0,
+            
+            # Reach the target (maximum) angle for waist and chest
+            'abs_y': 35.0,  
+            'bust_y': 35.0,
+            
+            # Extend the elbows (0.0) to throw the arms forward
+            'l_elbow_y': 0.0,
+            'r_elbow_y': 0.0,
+            
+            # (Optional) Extending shoulders forward provides extra momentum
+            'l_shoulder_y': -90.0, 
+            'r_shoulder_y': -90.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_3, 
+            duration=1.2, # A slightly faster duration to generate kinetic energy
+            movement_name="Step 3: Full Sit-up", 
+            waitSituation=True
+        )
+
+        # STEP 4: Transferring the Load to Hips and Full Sit
+        target_step_4 = {
+            # Since the torso is off the ground, we can now bend the hips. 
+            # This folds the torso over the legs, pulling the center of gravity forward.
+            'l_hip_y': -45.0,
+            'r_hip_y': -45.0,
+            
+            # We ease the extreme contraction in the waist and chest since the hips are starting to bend.
+            # Otherwise, the robot folds in on itself too much.
+            'abs_y': 35.0,  
+            'bust_y': 35.0,
+            
+            # Bending the knees slightly prevents the legs from lifting into the air like a long stick 
+            # and ensures the heels press against the ground (anchoring).
+            'l_knee_y': 5.0,
+            'r_knee_y': 5.0,
+            
+            # Let the arms' momentum continue to balance the torso by pressing slightly down/forward
+            'l_shoulder_y': -90.0, 
+            'r_shoulder_y': -90.0,
+            
+            # Elbows can remain straight
+            'l_elbow_y': 0.0,
+            'r_elbow_y': 0.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_4, 
+            duration=1.5, # A slightly longer duration for a balanced transition
+            movement_name="Step 4: Transition to Hips", 
+            waitSituation=True
+        )
+
+        # STEP 5: Transferring the Load to Hips and Full Sit
+        target_step_5 = {
+            # Since the torso is off the ground, we can now bend the hips. 
+            # This folds the torso over the legs, pulling the center of gravity forward.
+            'l_hip_y': 0.0, 
+            'r_hip_y': 0.0,
+            
+            # We ease the extreme contraction in the waist and chest since the hips are starting to bend.
+            # Otherwise, the robot folds in on itself too much.
+            'abs_y': 35.0,  
+            'bust_y': 35.0,
+            
+            # Bending the knees slightly prevents the legs from lifting into the air like a long stick 
+            # and ensures the heels press against the ground (anchoring).
+            'l_knee_y': 5.0,
+            'r_knee_y': 5.0,
+            
+            # Let the arms' momentum continue to balance the torso by pressing slightly down/forward
+            'l_shoulder_y': -90.0, 
+            'r_shoulder_y': -90.0,
+            
+            # Elbows can remain straight
+            'l_elbow_y': 0.0,
+            'r_elbow_y': 0.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_5, 
+            duration=1.5, # A slightly longer duration for a balanced transition
+            movement_name="Step 5: Transition to Hips", 
+            waitSituation=True
+        )
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = PoppyTesterApp()
