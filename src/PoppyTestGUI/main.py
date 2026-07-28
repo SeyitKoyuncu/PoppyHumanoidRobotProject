@@ -103,8 +103,8 @@ class PoppyTesterApp(QMainWindow):
         self.btn_rest.clicked.connect(self.set_rest_position)
         self.btn_rest.setEnabled(False) 
 
-        self.btn_stand = QPushButton("Stand Up")
-        self.btn_stand.clicked.connect(self.stand_up_2)
+        self.btn_stand = QPushButton("Lay Flat (Reset) Position")
+        self.btn_stand.clicked.connect(self.lay_flat_position)
         self.btn_stand.setEnabled(False) 
 
         control_layout.addWidget(self.btn_rest)
@@ -382,6 +382,55 @@ class PoppyTesterApp(QMainWindow):
             movement_name="Step 1: Slight Crunch", 
             waitSituation=True,
             torque_limit={"motor_name": "head_y", "torque_limit_value": 100}
+        )
+    
+    def lay_flat_position(self):
+        self.log_message("Robot sırtüstü devriliyor (Trust Fall)...")
+        
+        # Adım 1: Bacakları Öne Fırlat
+        # Gövdeyi bükmeye çalışmıyoruz. Sadece kalçadan bacakları öne (havaya) kaldırıyoruz.
+        # Ayakların altındaki zemin desteği kaybolunca robot mecburen sırtüstü düşecek.
+        target_fall_backward = {
+            # Kalçayı 60 derece bükerek bacakları havaya (öne) tekmeliyoruz
+            'l_hip_y': 60.0, 
+            'r_hip_y': 60.0,
+            
+            # Dizler düz kalsın ki sopa gibi geriye düşsün
+            'l_knee_y': 0.0, 
+            'r_knee_y': 0.0,
+            
+            # Kolları şiddetle geriye savurarak düşüşü hızlandırıyoruz
+            'l_shoulder_y': 150.0, 
+            'r_shoulder_y': 150.0,
+            
+            # Gövdeyi hiç ellemiyoruz (Zaten gücü yetmiyor)
+            'abs_y': 0.0, 
+            'bust_y': 0.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_fall_backward, 
+            duration=0.5, # Çok hızlı olmalı ki bacaklar anında yerden kesilsin
+            movement_name="Step 1: Kick Legs Forward & Fall", 
+            waitSituation=True
+        )
+        
+        # Adım 2: Yerde Dümdüz Ol
+        # Düşüş tamamlandıktan sonra tüm açıları sıfırlayarak dümdüz yatıyoruz
+        target_flat = {
+            'l_hip_y': 0.0, 'r_hip_y': 0.0,
+            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'abs_y': 0.0, 'bust_y': 0.0,
+            'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_flat, 
+            duration=1.5, # Robot yerde sekerken yavaşça düzeltiyoruz
+            movement_name="Step 2: Lay Flat on Ground", 
+            waitSituation=True
         )
 
        
