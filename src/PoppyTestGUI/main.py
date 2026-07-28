@@ -104,7 +104,7 @@ class PoppyTesterApp(QMainWindow):
         self.btn_rest.setEnabled(False) 
 
         self.btn_stand = QPushButton("Stand Up")
-        self.btn_stand.clicked.connect(self.stand_up)
+        self.btn_stand.clicked.connect(self.stand_up_2)
         self.btn_stand.setEnabled(False) 
 
         control_layout.addWidget(self.btn_rest)
@@ -298,48 +298,27 @@ class PoppyTesterApp(QMainWindow):
             duration=1.2, # A slightly faster duration to generate kinetic energy
             movement_name="Step 3: Full Sit-up", 
             waitSituation=True
-        )
+        )   
 
-        # STEP 4: Transferring the Load to Hips and Full Sit
         target_step_4 = {
-            # Since the torso is off the ground, we can now bend the hips. 
-            # This folds the torso over the legs, pulling the center of gravity forward.
-            'l_hip_y': -45.0,
-            'r_hip_y': -45.0,
-            
-            # We ease the extreme contraction in the waist and chest since the hips are starting to bend.
-            # Otherwise, the robot folds in on itself too much.
-            'abs_y': 35.0,  
-            'bust_y': 35.0,
-            
-            # Bending the knees slightly prevents the legs from lifting into the air like a long stick 
-            # and ensures the heels press against the ground (anchoring).
-            'l_knee_y': 5.0,
-            'r_knee_y': 5.0,
-            
-            # Let the arms' momentum continue to balance the torso by pressing slightly down/forward
-            'l_shoulder_y': -90.0, 
-            'r_shoulder_y': -90.0,
-            
-            # Elbows can remain straight
-            'l_elbow_y': 0.0,
-            'r_elbow_y': 0.0
+            'l_hip_x': 20.0,
         }
-        
+
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
             target_angles=target_step_4, 
             duration=1.5, # A slightly longer duration for a balanced transition
-            movement_name="Step 4: Transition to Hips", 
+            movement_name="Step 4: Adjust Hip Position", 
             waitSituation=True
         )
+        
 
         # STEP 5: Transferring the Load to Hips and Full Sit
         target_step_5 = {
             # Since the torso is off the ground, we can now bend the hips. 
             # This folds the torso over the legs, pulling the center of gravity forward.
-            'l_hip_y': 0.0, 
-            'r_hip_y': 0.0,
+            'l_hip_y': -90.0, 
+            'r_hip_y': -90.0,
             
             # We ease the extreme contraction in the waist and chest since the hips are starting to bend.
             # Otherwise, the robot folds in on itself too much.
@@ -352,13 +331,14 @@ class PoppyTesterApp(QMainWindow):
             'r_knee_y': 5.0,
             
             # Let the arms' momentum continue to balance the torso by pressing slightly down/forward
-            'l_shoulder_y': -90.0, 
-            'r_shoulder_y': -90.0,
-            
+            'l_shoulder_y': -45.0, 
+            'r_shoulder_y': -45.0,
+
             # Elbows can remain straight
             'l_elbow_y': 0.0,
             'r_elbow_y': 0.0
         }
+
         
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
@@ -367,6 +347,46 @@ class PoppyTesterApp(QMainWindow):
             movement_name="Step 5: Transition to Hips", 
             waitSituation=True
         )
+
+        # STEP 5: Transferring the Load to Hips and Full Sit
+        target_step_6 = {
+            # Since the torso is off the ground, we can now bend the hips. 
+            # This folds the torso over the legs, pulling the center of gravity forward.
+            'l_hip_y': 0.0, 
+            'r_hip_y': 0.0,
+        }
+
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_6, 
+            duration=0.5, # A slightly longer duration for a balanced transition
+            movement_name="Step 5: Transition to Hips", 
+            waitSituation=True
+        )
+
+
+    def stand_up_2(self):
+        # STEP 1: Slight Crunch
+        target_step_1 = {
+            # Legs are fixed at 0.0 (Acting as an anchor)
+            'head_y': 20, 
+            'bust_y': 20,
+            'abs_y': 20.0,  
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_1, 
+            duration=1.0, # Short and controlled duration
+            movement_name="Step 1: Slight Crunch", 
+            waitSituation=True,
+            torque_limit={"motor_name": "head_y", "torque_limit_value": 100}
+        )
+
+       
+        
+        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = PoppyTesterApp()

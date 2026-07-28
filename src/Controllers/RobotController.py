@@ -116,13 +116,15 @@ class RobotController:
         except Exception as e:
             logFunction(f"Error moving {motor}: {str(e)}")
 
-    def motor_movement_go_to(self, logFunction, target_angles, duration, movement_name, waitSituation=True, process_events_callback=None):
+    def motor_movement_go_to(self, logFunction, target_angles, duration, movement_name, waitSituation=True, process_events_callback=None, torque_limit=None):
         # ... (The preparation phase can remain the same, where you find the motors and set compliant=False) ...
         active_motors = []
         for motor_name, target_angle in target_angles.items():
             motor = self.get_motor_by_name(motor_name)
             if motor:
                 motor.compliant = False
+                if torque_limit is not None and torque_limit["motor_name"] == motor_name:
+                    motor.torque_limit = torque_limit["torque_limit_value"]
                 current_pos = motor.present_position
                 amplitude = target_angle - current_pos
                 
