@@ -100,7 +100,7 @@ class PoppyTesterApp(QMainWindow):
         control_layout.addWidget(QLabel("Preset Poses:"))
 
         self.btn_stand = QPushButton("Stand Up")
-        self.btn_stand.clicked.connect(self.stand_up_2)
+        self.btn_stand.clicked.connect(self.stand_up)
 
 
         self.btn_rest = QPushButton("Set Rest (Lying) Position")
@@ -232,146 +232,106 @@ class PoppyTesterApp(QMainWindow):
             self.log_message(f"Error setting rest position: {str(e)}")
 
     def stand_up(self):
-        # STEP 1: Slight Crunch
-        target_step_1 = {
-            # Legs are fixed at 0.0 (Acting as an anchor)
-            'l_hip_y': 0.0, 
-            'r_hip_y': 0.0,
-            
-            # Lift the waist and chest slightly
-            'abs_y': 15.0,  
-            'bust_y': 5.0
-        }
-        
-        self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_1, 
-            duration=1.0, # Short and controlled duration
-            movement_name="Step 1: Slight Crunch", 
-            waitSituation=True
-        )
 
-        time.sleep(1)  # Wait for the robot to ensure it stabilizes
-
-
-        # STEP 2: Bend Elbows
-        target_step_2 = {
-            # Legs are still fixed at 0.0
-            'l_hip_y': 0.0, 
-            'r_hip_y': 0.0,
-            
-            # MAINTAIN the slightly lifted angle of the torso (Otherwise it falls back)
-            'abs_y': 15.0,  
-            'bust_y': 5.0,
-            
-            # Bend elbows 90 degrees (It might need to be -90.0 depending on the motor direction)
-            'l_elbow_y': 90.0, 
-            'r_elbow_y': 90.0
-        }
-        
-        self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_2, 
-            duration=1.0, 
-            movement_name="Step 2: Bend Elbows", 
-            waitSituation=True
-        )
-
-        time.sleep(1)
-        # Second Step: Move hip motors to lift the torso
-        
-        # STEP 3: Full Sit-up and Opening Arms
-        target_step_3 = {
-            # Legs continue to stay fixed at 0.0
-            'l_hip_y': 0.0, 
-            'r_hip_y': 0.0,
-            
-            # Reach the target (maximum) angle for waist and chest
-            'abs_y': 35.0,  
-            'bust_y': 35.0,
-            
-            # Extend the elbows (0.0) to throw the arms forward
-            'l_elbow_y': 0.0,
-            'r_elbow_y': 0.0,
-            
-            # (Optional) Extending shoulders forward provides extra momentum
-            'l_shoulder_y': -90.0, 
-            'r_shoulder_y': -90.0
-        }
-        
-        self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_3, 
-            duration=1.2, # A slightly faster duration to generate kinetic energy
-            movement_name="Step 3: Full Sit-up", 
-            waitSituation=True
-        )   
-
-        target_step_4 = {
-            'l_hip_x': 20.0,
-        }
-
-        self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_4, 
-            duration=1.5, # A slightly longer duration for a balanced transition
-            movement_name="Step 4: Adjust Hip Position", 
-            waitSituation=True
-        )
-        
-
-        # STEP 5: Transferring the Load to Hips and Full Sit
-        target_step_5 = {
-            # Since the torso is off the ground, we can now bend the hips. 
-            # This folds the torso over the legs, pulling the center of gravity forward.
-            'l_hip_y': -90.0, 
-            'r_hip_y': -90.0,
-            
-            # We ease the extreme contraction in the waist and chest since the hips are starting to bend.
-            # Otherwise, the robot folds in on itself too much.
-            'abs_y': 35.0,  
-            'bust_y': 35.0,
-            
-            # Bending the knees slightly prevents the legs from lifting into the air like a long stick 
-            # and ensures the heels press against the ground (anchoring).
-            'l_knee_y': 5.0,
-            'r_knee_y': 5.0,
-            
-            # Let the arms' momentum continue to balance the torso by pressing slightly down/forward
-            'l_shoulder_y': -45.0, 
-            'r_shoulder_y': -45.0,
-
-            # Elbows can remain straight
-            'l_elbow_y': 0.0,
-            'r_elbow_y': 0.0
-        }
-
-        
-        self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_5, 
-            duration=1.5, # A slightly longer duration for a balanced transition
-            movement_name="Step 5: Transition to Hips", 
-            waitSituation=True
-        )
-
-        # STEP 5: Transferring the Load to Hips and Full Sit
+        # STEP 6 (FIXED): The Final Stand-up Motion (From deep squat to straight)
         target_step_6 = {
-            # Since the torso is off the ground, we can now bend the hips. 
-            # This folds the torso over the legs, pulling the center of gravity forward.
-            'l_hip_y': 0.0, 
-            'r_hip_y': 0.0,
+            # The standing pose
+            'l_hip_y': 0.0, 'r_hip_y': 0.0,
+            # CRITICAL: Keep X and Z zero during lift
+            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+            'l_hip_z': 0.0, 'r_hip_z': 0.0,
+            # Also zero out other joints for full straight stand
+            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'abs_y': 0.0, 'bust_y': 0.0,
+            'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0,
         }
-
         
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
             target_angles=target_step_6, 
-            duration=0.5, # A slightly longer duration for a balanced transition
-            movement_name="Step 5: Transition to Hips", 
+            duration=1.2, # SÜRE UZATILDI (0.5 -> 1.2s): Daha kontrollü, daha az momentum.
+            movement_name="Step 6: Final Stand Up", waitSituation=True
+        )
+       # STEP 7: Bacakları Karna Doğru Bükme (İstikrarlı V-sit)
+        target_step_7 = {
+            'l_hip_y': -90.0, 'r_hip_y': -90.0,
+            'l_knee_y': 120.0, 'r_knee_y': 120.0,
+            'abs_y': 30.0,  'bust_y': 30.0,
+            
+            # --- KRİTİK: Kolları önde tutarak ağırlığı öne çek ---
+            'l_shoulder_y': -90.0, 
+            'r_shoulder_y': -90.0,
+            'l_elbow_y': 0.0, 
+            'r_elbow_y': 0.0,
+            
+            # Simetri korunsun
+            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+            'l_hip_z': 0.0, 'r_hip_z': 0.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_7, 
+            duration=1.5, movement_name="Step 7: Pull Legs (Maintain Front Arms)", waitSituation=True
+        )
+        time.sleep(1) # Bu pozisyonda dengede durması için bekle
+
+
+        # STEP 8A (REVISED): Gövdeyi Kapat, Kolları Önde Tut (İvmeyi Yönet)
+        target_step_8A = {
+            # Bacaklar aynı kalıyor
+            'l_hip_y': -90.0, 'r_hip_y': -90.0,
+            'l_knee_y': 120.0, 'r_knee_y': 120.0,
+            
+            # Gövdeyi tam kapasite öne katla (Ama kafayı gömme)
+            'abs_y': 45.0,  
+            'bust_y': 45.0,
+            
+            # --- KRİTİK: Kolları hâlâ önde tutarak denge sağla ---
+            'l_shoulder_y': -90.0, 
+            'r_shoulder_y': -90.0,
+            'l_elbow_y': 0.0, 
+            'r_elbow_y': 0.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_8A, 
+            duration=1.8, # Geriye ivmeyi önlemek için yumuşak, uzun geçiş (1.8 saniye)
+            movement_name="Step 8A: Fold Torso (Arms Stabilize)", 
             waitSituation=True
         )
+        time.sleep(1) # Stabilize olmasını bekle
 
+
+        # STEP 8B (FIXED): Kafayı Göm ve Kolları Dizlere Sar (Ağırlığı Önde Tut)
+        target_step_8B = {
+            # Bacaklar ve Gövde aynı kalıyor
+            'l_hip_y': -90.0, 'r_hip_y': -90.0,
+            'l_knee_y': 120.0, 'r_knee_y': 120.0,
+            'abs_y': 45.0,  'bust_y': 45.0,
+            
+            # Kafayı gömüyoruz
+            'head_y': 40.0, 
+            
+            # --- KRİTİK DÜZELTME: KOLLAR ---
+            # Omuzları çok geriye çekmek yerine dizlere doğru (-60.0) açılı bırakıyoruz.
+            # Böylece kolların ağırlığı gövdenin önünde kalıp geriye düşüşü engeller.
+            'l_shoulder_y': -60.0, 
+            'r_shoulder_y': -60.0,
+            
+            # Dirsekleri bükerek bacaklara sarılma efekti veriyoruz
+            'l_elbow_y': 60.0, 
+            'r_elbow_y': 60.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_8B, 
+            duration=2.0, # ÇOK ÖNEMLİ: Hareketi 2.0 saniyeye yayarak sarsıntıyı ve ivmeyi sıfırlıyoruz
+            movement_name="Step 8B: Tuck Head and Wrap Arms", 
+            waitSituation=True
+        )
 
     def stand_up_2(self):
         # STEP 1: Slight Crunch
