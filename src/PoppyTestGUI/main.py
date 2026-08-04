@@ -98,17 +98,22 @@ class PoppyTesterApp(QMainWindow):
 
         # Rady Position Buttons
         control_layout.addWidget(QLabel("Preset Poses:"))
-        
+
+        self.btn_stand = QPushButton("Stand Up")
+        self.btn_stand.clicked.connect(self.stand_up_2)
+
+
         self.btn_rest = QPushButton("Set Rest (Lying) Position")
         self.btn_rest.clicked.connect(self.set_rest_position)
         self.btn_rest.setEnabled(False) 
 
-        self.btn_stand = QPushButton("Lay Flat (Reset) Position")
-        self.btn_stand.clicked.connect(self.lay_flat_position)
-        self.btn_stand.setEnabled(False) 
+        self.btn_flat = QPushButton("Lay Flat (Reset) Position")
+        self.btn_flat.clicked.connect(self.lay_flat_position)
+        self.btn_flat.setEnabled(False) 
 
         control_layout.addWidget(self.btn_rest)
         control_layout.addWidget(self.btn_stand)
+        control_layout.addWidget(self.btn_flat)
         
         control_group.setLayout(control_layout)
         left_panel.addWidget(control_group)
@@ -176,6 +181,7 @@ class PoppyTesterApp(QMainWindow):
             self.btn_goto.setEnabled(True)
             self.btn_stand.setEnabled(True)
             self.btn_rest.setEnabled(True)
+            self.btn_flat.setEnabled(True)
             self.update_motor_combobox()
 
     def disconnect_robot(self):
@@ -187,6 +193,7 @@ class PoppyTesterApp(QMainWindow):
         self.btn_goto.setEnabled(False)
         self.btn_stand.setEnabled(False)
         self.btn_rest.setEnabled(False)
+        self.btn_flat.setEnabled(False)
         self.combo_motors.clear()
         self.combo_motors.addItem("All Motors (Sequentially)")
 
