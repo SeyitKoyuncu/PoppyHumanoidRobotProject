@@ -234,7 +234,7 @@ class PoppyTesterApp(QMainWindow):
     def stand_up(self):
 
         # STEP 6 (FIXED): The Final Stand-up Motion (From deep squat to straight)
-        target_step_6 = {
+        """target_step_1 = {
             # The standing pose
             'l_hip_y': 0.0, 'r_hip_y': 0.0,
             # CRITICAL: Keep X and Z zero during lift
@@ -248,12 +248,12 @@ class PoppyTesterApp(QMainWindow):
         
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
-            target_angles=target_step_6, 
+            target_angles=target_step_1, 
             duration=1.2, # SÜRE UZATILDI (0.5 -> 1.2s): Daha kontrollü, daha az momentum.
             movement_name="Step 6: Final Stand Up", waitSituation=True
         )
        # STEP 7: Bacakları Karna Doğru Bükme (İstikrarlı V-sit)
-        target_step_7 = {
+        target_step_2 = {
             'l_hip_y': -90.0, 'r_hip_y': -90.0,
             'l_knee_y': 120.0, 'r_knee_y': 120.0,
             'abs_y': 30.0,  'bust_y': 30.0,
@@ -271,14 +271,14 @@ class PoppyTesterApp(QMainWindow):
         
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
-            target_angles=target_step_7, 
+            target_angles=target_step_2, 
             duration=1.5, movement_name="Step 7: Pull Legs (Maintain Front Arms)", waitSituation=True
         )
         time.sleep(1) # Bu pozisyonda dengede durması için bekle
 
 
         # STEP 8A (REVISED): Gövdeyi Kapat, Kolları Önde Tut (İvmeyi Yönet)
-        target_step_8A = {
+        target_step_3a = {
             # Bacaklar aynı kalıyor
             'l_hip_y': -90.0, 'r_hip_y': -90.0,
             'l_knee_y': 120.0, 'r_knee_y': 120.0,
@@ -296,7 +296,7 @@ class PoppyTesterApp(QMainWindow):
         
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
-            target_angles=target_step_8A, 
+            target_angles=target_step_3a, 
             duration=1.8, # Geriye ivmeyi önlemek için yumuşak, uzun geçiş (1.8 saniye)
             movement_name="Step 8A: Fold Torso (Arms Stabilize)", 
             waitSituation=True
@@ -305,7 +305,7 @@ class PoppyTesterApp(QMainWindow):
 
 
         # STEP 8B (FIXED): Kafayı Göm ve Kolları Dizlere Sar (Ağırlığı Önde Tut)
-        target_step_8B = {
+        target_step_3b = {
             # Bacaklar ve Gövde aynı kalıyor
             'l_hip_y': -90.0, 'r_hip_y': -90.0,
             'l_knee_y': 120.0, 'r_knee_y': 120.0,
@@ -327,29 +327,118 @@ class PoppyTesterApp(QMainWindow):
         
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
-            target_angles=target_step_8B, 
+            target_angles=target_step_3b, 
             duration=2.0, # ÇOK ÖNEMLİ: Hareketi 2.0 saniyeye yayarak sarsıntıyı ve ivmeyi sıfırlıyoruz
             movement_name="Step 8B: Tuck Head and Wrap Arms", 
             waitSituation=True
-        )
-
-    def stand_up_2(self):
-        # STEP 1: Slight Crunch
-        target_step_1 = {
-            # Legs are fixed at 0.0 (Acting as an anchor)
-            'head_y': 20, 
-            'bust_y': 20,
-            'abs_y': 20.0,  
+        )"""
+        target_step_4 = {
+            'l_hip_y': -90.0, 
+            'r_hip_y': -90.0,
+            
+            'l_knee_y': 0.0, 
+            'r_knee_y': 0.0,
+            'l_ankle_y': 0.0,
+            'r_ankle_y': 0.0,
+            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+            'l_hip_z': 0.0, 'r_hip_z': 0.0,
+            
+            # Gövdeyi tamamen dikleştir (abs ve bust 0.0)
+            'abs_y': 0.0,  
+            'bust_y': 0.0,
+            
+            # Kafayı kaldır ve ileriye bak
+            'head_y': 0.0, 
+            
+            # Kolları iki yana serbest bırak (Omuzlar ve dirsekler düz)
+            'l_shoulder_y': 0.0, 
+            'r_shoulder_y': 0.0,
+            'l_elbow_y': 0.0, 
+            'r_elbow_y': 0.0,
         }
         
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
-            target_angles=target_step_1, 
-            duration=1.0, # Short and controlled duration
-            movement_name="Step 1: Slight Crunch", 
-            waitSituation=True,
-            torque_limit={"motor_name": "head_y", "torque_limit_value": 100}
+            target_angles=target_step_4, 
+            duration=2.5, # ÇOK ÖNEMLİ: Bu açılma hareketinin süresi uzun (2.5 sn) olmalı ki momentum robotu savurmasın.
+            movement_name="Step 9: Open to L-Sit Position", 
+            waitSituation=True
         )
+       # STEP 5A: Sadece Gövdeyi Maksimuma Katla (Kalçayı Henüz Bükme!)
+        target_step_5A = {
+            # Kalçalar 0.0'da (Bacaklar dümdüz ve yerde ağır bir çapa gibi kalıyor)
+            'l_hip_y': 0.0, 
+            'r_hip_y': 0.0,
+            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            
+            # SADECE gövde motorlarını limitlerine kadar öne basıyoruz
+            'abs_y': 70.0,  
+            'bust_y': 70.0,
+            'head_y': 40.0, # Kafayı da iyice öne göm ki ağırlık öne kaysın
+            
+            # Kolları ileri fırlat
+            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+            
+            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_5A, 
+            duration=1.0, 
+            movement_name="Step 5A: Max Torso Crunch (Legs Flat)", 
+            waitSituation=True
+        )
+
+
+        # STEP 5B: Ağırlık Öndeyken Kalçayı Bükerek Oturma Pozisyonuna Geç
+        target_step_5B = {
+            # Gövde 70 derecede öne katlı kalmaya devam ediyor (Geriye düşmemek için)
+            'abs_y': 70.0,  
+            'bust_y': 70.0,
+            'head_y': 40.0,
+            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+            
+            # ŞİMDİ kalçayı -90'a çekiyoruz. Gövde zaten önde olduğu için geriye düşemez.
+            'l_hip_y': -90.0, 
+            'r_hip_y': -90.0,
+            
+            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_5B, 
+            duration=1.0, 
+            movement_name="Step 5B: Engage Hips to Sit", 
+            waitSituation=True
+        )
+
+        # STEP 5B: Ağırlık Öndeyken Kalçayı Bükerek Oturma Pozisyonuna Geç
+        target_step_5B = {
+            # Gövde 70 derecede öne katlı kalmaya devam ediyor (Geriye düşmemek için)
+            'abs_y': 70.0,  
+            'bust_y': 70.0,
+            'head_y': 40.0,
+            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+            
+            # ŞİMDİ kalçayı -90'a çekiyoruz. Gövde zaten önde olduğu için geriye düşemez.
+            'l_hip_y': -90.0, 
+            'r_hip_y': -90.0,
+            
+            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_5B, 
+            duration=1.0, 
+            movement_name="Step 5B: Engage Hips to Sit", 
+            waitSituation=True
+        )
+
     
     def lay_flat_position(self):
         self.log_message("Robot sırtüstü devriliyor (Trust Fall)...")
@@ -359,20 +448,7 @@ class PoppyTesterApp(QMainWindow):
         # Ayakların altındaki zemin desteği kaybolunca robot mecburen sırtüstü düşecek.
         target_fall_backward = {
             # Kalçayı 60 derece bükerek bacakları havaya (öne) tekmeliyoruz
-            'l_hip_y': 60.0, 
-            'r_hip_y': 60.0,
-            
-            # Dizler düz kalsın ki sopa gibi geriye düşsün
-            'l_knee_y': 0.0, 
-            'r_knee_y': 0.0,
-            
-            # Kolları şiddetle geriye savurarak düşüşü hızlandırıyoruz
-            'l_shoulder_y': 150.0, 
-            'r_shoulder_y': 150.0,
-            
-            # Gövdeyi hiç ellemiyoruz (Zaten gücü yetmiyor)
-            'abs_y': 0.0, 
-            'bust_y': 0.0
+            'l_knee_y': 20.0, 
         }
         
         self.controller.motor_movement_go_to(
@@ -382,14 +458,17 @@ class PoppyTesterApp(QMainWindow):
             movement_name="Step 1: Kick Legs Forward & Fall", 
             waitSituation=True
         )
-        
-        # Adım 2: Yerde Dümdüz Ol
-        # Düşüş tamamlandıktan sonra tüm açıları sıfırlayarak dümdüz yatıyoruz
+
+        time.sleep(2) 
+
         target_flat = {
             'l_hip_y': 0.0, 'r_hip_y': 0.0,
             'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'l_ankle_y': 0.0, 'r_ankle_y': 0.0,
             'abs_y': 0.0, 'bust_y': 0.0,
-            'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0
+            'head_y': 0.0,
+            'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0,
+            'l_elbow_y': 0.0, 'r_elbow_y': 0.0,
         }
         
         self.controller.motor_movement_go_to(
