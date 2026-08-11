@@ -307,10 +307,83 @@ class PoppyTesterApp(QMainWindow):
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
             target_angles=target_step_3, 
-            duration=1.0, 
+            duration=3.0, 
             movement_name="Step 3: Engage Hips to Sit", 
             waitSituation=True
         )
+        target_step_4 = {
+                    # The torso is 70 degrees forward (to prevent falling backward)
+                    'abs_y': 50.0,  #70
+                    'bust_y': 50.0, #70
+                    'head_y': 40.0, #40
+                    'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+                    
+                    # Now hips are 90. Since the torso is already forward, it cannot fall backward.
+                    'l_hip_y': -45.0,
+                    'r_hip_y': -45.0,
+                    
+                    'l_knee_y': 0.0, 'r_knee_y': 0.0,
+                    'l_hip_x': 0.0, 'r_hip_x': 0.0,
+                }
+        self.controller.motor_movement_go_to(
+                    logFunction=self.log_message, 
+                    target_angles=target_step_4, 
+                    duration=3.0, 
+                    movement_name="Step 4: Final Position", 
+                    waitSituation=True
+        )
+
+        target_step_5 = {
+                            # The torso is 70 degrees forward (to prevent falling backward)
+                            'abs_y': 30.0,  #70
+                            'bust_y':70.0, #70
+                            'head_y':40.0, #40
+                            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+                            
+                            # Now hips are 90. Since the torso is already forward, it cannot fall backward.
+                            'l_hip_y': -45.0,
+                            'r_hip_y': -45.0,
+                            
+                            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+                            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+                        }
+        self.controller.motor_movement_go_to(
+                            logFunction=self.log_message, 
+                            target_angles=target_step_5, 
+                            duration=3.0, 
+                            movement_name="Step 5:Straighten Torso", 
+                            waitSituation=True
+                )
+        target_step_6 = {
+                                # The torso is 70 degrees forward (to prevent falling backward)
+                                    'abs_y': 30.0,  #70
+                                    'bust_y':30.0, #70
+                                    'head_y':40.0, #40
+                                    'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+                                    
+                                    # Now hips are 90. Since the torso is already forward, it cannot fall backward.
+                                    'l_hip_y': -45.0,
+                                    'r_hip_y': -45.0,
+                                    
+                                    'l_knee_y': 0.0, 'r_knee_y': 0.0,
+                                    'l_hip_x': 0.0, 'r_hip_x': 0.0,
+                                }
+        self.controller.motor_movement_go_to(
+                                    logFunction=self.log_message, 
+                                    target_angles=target_step_6, 
+                                    duration=3.0,
+                                    movement_name="Step 6:Straighten Torso2", 
+                                    waitSituation=True
+                        )
+
+        self.controller.motor_movement_go_to(
+                                            logFunction=self.log_message, 
+                                            target_angles=target_step_6, 
+                                            duration=3.0,
+                                            movement_name="Step 6:Straighten Torso2", 
+                                            waitSituation=True
+                                )
+        
 
 
     def lay_flat_position(self):
