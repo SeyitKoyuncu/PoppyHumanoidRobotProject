@@ -99,8 +99,8 @@ class PoppyTesterApp(QMainWindow):
         # Rady Position Buttons
         control_layout.addWidget(QLabel("Preset Poses:"))
 
-        self.btn_stand = QPushButton("Stand Up")
-        self.btn_stand.clicked.connect(self.stand_up)
+        self.btn_sit = QPushButton("Sit Down")
+        self.btn_sit.clicked.connect(self.sit_down)
 
 
         self.btn_rest = QPushButton("Set Rest (Lying) Position")
@@ -112,7 +112,7 @@ class PoppyTesterApp(QMainWindow):
         self.btn_flat.setEnabled(False) 
 
         control_layout.addWidget(self.btn_rest)
-        control_layout.addWidget(self.btn_stand)
+        control_layout.addWidget(self.btn_sit)
         control_layout.addWidget(self.btn_flat)
         
         control_group.setLayout(control_layout)
@@ -179,7 +179,7 @@ class PoppyTesterApp(QMainWindow):
             self.btn_disconnect.setEnabled(True)
             self.btn_run.setEnabled(True)
             self.btn_goto.setEnabled(True)
-            self.btn_stand.setEnabled(True)
+            self.btn_sit.setEnabled(True)
             self.btn_rest.setEnabled(True)
             self.btn_flat.setEnabled(True)
             self.update_motor_combobox()
@@ -191,7 +191,7 @@ class PoppyTesterApp(QMainWindow):
         self.btn_disconnect.setEnabled(False)
         self.btn_run.setEnabled(False)
         self.btn_goto.setEnabled(False)
-        self.btn_stand.setEnabled(False)
+        self.btn_sit.setEnabled(False)
         self.btn_rest.setEnabled(False)
         self.btn_flat.setEnabled(False)
         self.combo_motors.clear()
@@ -231,7 +231,7 @@ class PoppyTesterApp(QMainWindow):
         except Exception as e:
             self.log_message(f"Error setting rest position: {str(e)}")
 
-    def stand_up(self):
+    def sit_down(self):
 
         # STEP 6 (FIXED): The Final Stand-up Motion (From deep squat to straight)
         """target_step_1 = {
