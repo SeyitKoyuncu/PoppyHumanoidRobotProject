@@ -286,14 +286,13 @@ class PoppyTesterApp(QMainWindow):
             logFunction=self.log_message, 
             target_angles=target_step_2, 
             duration=1.0, 
-            movement_name="Step 5A: Max Torso Crunch (Legs Flat)", 
+            movement_name="Step 2: Max Torso Crunch (Legs Flat)", 
             waitSituation=True
         )
-        # STEP 5B: Ağırlık Öndeyken Kalçayı Bükerek Oturma Pozisyonuna Geç
         target_step_3 = {
             # The torso is 70 degrees forward (to prevent falling backward)
-            'abs_y': 90.0,  #70
-            'bust_y': 90.0, #70
+            'abs_y': 70.0,  #70
+            'bust_y': 70.0, #70
             'head_y': 40.0, #40
             'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
             
@@ -309,7 +308,7 @@ class PoppyTesterApp(QMainWindow):
             logFunction=self.log_message, 
             target_angles=target_step_3, 
             duration=1.0, 
-            movement_name="Step 5B: Engage Hips to Sit", 
+            movement_name="Step 3: Engage Hips to Sit", 
             waitSituation=True
         )
 
