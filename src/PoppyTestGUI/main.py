@@ -111,10 +111,17 @@ class PoppyTesterApp(QMainWindow):
         self.btn_flat.clicked.connect(self.lay_flat_position)
         self.btn_flat.setEnabled(False) 
 
+        self.btn_wavehands = QPushButton("Waving both hands")
+        self.btn_wavehands.clicked.connect(self.raise_both_arms_and_wait)
+
+        self.btn_surprise = QPushButton("Surprise Gesture")
+        self.btn_surprise.clicked.connect(self.surprise_hands_to_mouth)
+    
         control_layout.addWidget(self.btn_rest)
         control_layout.addWidget(self.btn_sit)
         control_layout.addWidget(self.btn_flat)
-        
+        control_layout.addWidget(self.btn_wavehands)
+        control_layout.addWidget(self.btn_surprise)
         control_group.setLayout(control_layout)
         left_panel.addWidget(control_group)
         # -----------------------------------------------------
@@ -383,6 +390,27 @@ class PoppyTesterApp(QMainWindow):
                                             movement_name="Step 6:Straighten Torso2", 
                                             waitSituation=True
                                 )
+        target_step_7 = {
+            'abs_y': 0.0,   
+            'bust_y': 0.0, 
+            'head_y': 0.0,
+            
+            'l_shoulder_y': -45.0,  
+            'r_shoulder_y': -45.0,  
+            
+            'l_hip_y': -90.0, 
+            'r_hip_y': -90.0,
+            
+            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'l_hip_x': 0.0, 'r_hip_x': 0.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, target_angles=target_step_7, 
+            duration=2.5, 
+            movement_name="Step 7: Final Upright Posture (Arms Balancing)", 
+            waitSituation=True
+        )
         
 
 
@@ -419,6 +447,103 @@ class PoppyTesterApp(QMainWindow):
             movement_name="Step 2: Lay Flat on Ground", 
             waitSituation=True
         )
+
+    def raise_both_arms_and_wait(self, cheer_count=3):
+
+        target_arms_up = {
+            'l_shoulder_x': 90.0,
+            'l_arm_z': 90.0,
+            'l_elbow_y': -90.0,
+            'r_shoulder_x': -90.0,
+            'r_arm_z': -90.0,
+            'r_elbow_y': -90.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_arms_up, 
+            duration=2, 
+            movement_name="Step 1: Raise Both Arms", 
+            waitSituation=True
+        )
+        target_cheer_1 = {'l_elbow_y': -60.0, 'r_elbow_y': -60.0}
+        target_cheer_2 = {'l_elbow_y': -120.0, 'r_elbow_y': -120.0}
+
+        for i in range(cheer_count):
+            self.controller.motor_movement_go_to(
+                logFunction=self.log_message, 
+                target_angles=target_cheer_1, 
+                duration=1, # Süre kısa (0.3 sn) olduğu için hareket hızlı ve enerjik olur
+                movement_name=f"Cheer Wave In ({i+1})", 
+                waitSituation=True
+            )
+            self.controller.motor_movement_go_to(
+                logFunction=self.log_message, 
+                target_angles=target_cheer_2, 
+                duration=2, 
+                movement_name=f"Cheer Wave Out ({i+1})", 
+                waitSituation=True
+            )
+        target_arms_down = {
+            'l_shoulder_x': 0.0,
+            'l_arm_z': 0.0,
+            'l_elbow_y': 0.0,
+            'r_shoulder_x': 0.0,
+            'r_arm_z': 0.0,
+            'r_elbow_y': 0.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_arms_down, 
+            duration=2, 
+            movement_name="Step 2: Lower Arms to Default", 
+            waitSituation=True
+        )
+        self.log_message("Arms motion completed.")
+
+    def surprise_hands_to_mouth(self):
+        self.log_message("Robot is performing a surprise gesture...")
+        
+        target_surprise = {
+
+            'l_shoulder_y': -100.0,
+            'l_shoulder_x': 40.0,
+            'l_arm_z': -40.0,
+            'l_elbow_y': -150.0,
+            
+            'r_shoulder_y': -100.0, 
+            'r_shoulder_x': -50.0, 
+            'r_arm_z': 40.0,
+            'r_elbow_y': -150.0,
+
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_surprise, 
+            duration=0.6, 
+            movement_name="Step 1: Surprise (Hands to mouth)", 
+            waitSituation=True
+        )
+
+        self.log_message("Holding surprise position...")
+        time.sleep(2.0)
+
+        target_default = {
+            'l_shoulder_y': 0.0, 'l_shoulder_x': 0.0, 'l_arm_z': 0.0, 'l_elbow_y': 0.0,
+            'r_shoulder_y': 0.0, 'r_shoulder_x': 0.0, 'r_arm_z': 0.0, 'r_elbow_y': 0.0,
+            'head_y': 0.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_default, 
+            duration=1.5, 
+            movement_name="Step 2: Return to default", 
+            waitSituation=True
+        )
+        self.log_message("Surprise gesture completed.")
 
        
         
