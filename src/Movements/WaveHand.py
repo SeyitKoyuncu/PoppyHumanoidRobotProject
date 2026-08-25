@@ -95,4 +95,6 @@ if __name__ == '__main__':
         print(f"\n[SYSTEM ERROR] {e}")
 
     finally:
-        relax_motors(poppy)
+        if poppy is not None:
+            relax_motors(poppy)
+            print("Robot Fully Closed.")
