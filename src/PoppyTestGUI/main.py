@@ -111,21 +111,17 @@ class PoppyTesterApp(QMainWindow):
         self.btn_flat.clicked.connect(self.lay_flat_position)
         self.btn_flat.setEnabled(False) 
 
-        self.btn_wavehands = QPushButton("Waving both hands")
-        self.btn_wavehands.clicked.connect(self.raise_both_arms_and_wait)
-
-        self.btn_surprise = QPushButton("Surprise Gesture")
-        self.btn_surprise.clicked.connect(self.surprise_hands_to_mouth)
-
         self.btn_squat_position = QPushButton("Squat Position")
         self.btn_squat_position.clicked.connect(self.squat_position)
+
+        self.btn_standup_from_squat = QPushButton("Stand Up from Squat")
+        self.btn_standup_from_squat.clicked.connect(self.standup_squat_position)
 
         control_layout.addWidget(self.btn_rest)
         control_layout.addWidget(self.btn_sit)
         control_layout.addWidget(self.btn_flat)
-        control_layout.addWidget(self.btn_wavehands)
-        control_layout.addWidget(self.btn_surprise)
         control_layout.addWidget(self.btn_squat_position)
+        control_layout.addWidget(self.btn_standup_from_squat)
         control_group.setLayout(control_layout)
         left_panel.addWidget(control_group)
         # -----------------------------------------------------
@@ -601,9 +597,56 @@ class PoppyTesterApp(QMainWindow):
         )
         self.log_message("Squat position completed.")
 
-       
+    def standup_squat_position(self):
+        target_standup1 = {
+            'l_hip_y': -50.0, 'r_hip_y': -50.0,
+            'l_knee_y': 55.0, 'r_knee_y': 55.0,
+            'l_ankle_y': -20.0, 'r_ankle_y': -20.0,
+            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+
+        }
+
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message,
+            target_angles=target_standup1,
+            duration=2.0,
+            movement_name="Step 4: Stand Up",
+            waitSituation=True
+        )
+
+        target_standup2 = {
+            'l_hip_y': -40.0, 'r_hip_y': -40.0,
+            'l_knee_y': 35.0, 'r_knee_y': 35.0,
+            'l_ankle_y': -10.0, 'r_ankle_y': -10.0,
+            'l_shoulder_y': -40.0, 'r_shoulder_y': -40.0,
+
+        }
+
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message,
+            target_angles=target_standup2,
+            duration=2.0,
+            movement_name="Step 4: Stand Up",
+            waitSituation=True
+        )
+
+        target_standup3 = {
+                    'l_hip_y': 0.0, 'r_hip_y': 0.0,
+                    'l_knee_y': 0.0, 'r_knee_y': 0.0,
+                    'l_ankle_y': 0.0, 'r_ankle_y': 0.0,
+                    'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0,
         
+        }
         
+        self.controller.motor_movement_go_to(
+                    logFunction=self.log_message,
+                    target_angles=target_standup3,
+                    duration=4.0,
+                    movement_name="Step 4: Stand Up",
+                    waitSituation=True
+        )
+        self.log_message("Stand up from squat position completed.")
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = PoppyTesterApp()
