@@ -175,3 +175,35 @@ class RobotController:
             time.sleep(0.1)
 
         logFunction(f"{movement_name} completed smoothly.")
+
+    
+    def stand_straight(robot, duration=3.0):
+        print("1. Enabling motor torque (Disabling compliance)...")
+        # Make all motors stiff and hold their positions
+        for m in robot.motors:
+            m.compliant = False
+        
+    # Optional: Increase P-gain to reduce wobble/bending in the legs
+    # Only applies to MX series motors, remove the '#' to enable if needed.
+    # for m in robot.legs:
+    #     m.pid = (64, 0, 0) 
+
+        print("2. Moving to the balanced standing position...")
+    # Zero angles to keep Poppy's legs and torso perfectly straight
+        standing_position = {
+            'l_hip_x': 0, 'l_hip_y': 0, 'l_hip_z': 0,  # Left hip
+            'r_hip_x': 0, 'r_hip_y': 0, 'r_hip_z': 0,  # Right hip
+            'l_knee_y': 0, 'r_knee_y': 0,              # Knees
+            'l_ankle_y': 0, 'r_ankle_y': 0,            # Ankles
+            'bust_y': 0, 'bust_x': 0                   # Torso
+    }
+    
+    # Execute the movement smoothly over the specified duration (3 seconds)
+        robot.goto_position(standing_position, duration, wait=True)
+    
+        print("The robot is now standing, stable, and ready to move")
+
+# How to use it:
+# from pypot.creatures import PoppyHumanoid
+    poppy = PoppyHumanoid()
+    stand_straight(poppy)
