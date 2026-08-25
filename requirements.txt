@@ -1,2 +1,5 @@
 PyQt5 pypot
 poppy-humanoid
+pyaudio
+SpeechRecognition
+pyttsx3

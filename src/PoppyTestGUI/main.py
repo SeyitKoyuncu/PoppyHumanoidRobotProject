@@ -116,12 +116,16 @@ class PoppyTesterApp(QMainWindow):
 
         self.btn_surprise = QPushButton("Surprise Gesture")
         self.btn_surprise.clicked.connect(self.surprise_hands_to_mouth)
-    
+
+        self.btn_squat_position = QPushButton("Squat Position")
+        self.btn_squat_position.clicked.connect(self.squat_position)
+
         control_layout.addWidget(self.btn_rest)
         control_layout.addWidget(self.btn_sit)
         control_layout.addWidget(self.btn_flat)
         control_layout.addWidget(self.btn_wavehands)
         control_layout.addWidget(self.btn_surprise)
+        control_layout.addWidget(self.btn_squat_position)
         control_group.setLayout(control_layout)
         left_panel.addWidget(control_group)
         # -----------------------------------------------------
@@ -411,7 +415,6 @@ class PoppyTesterApp(QMainWindow):
             movement_name="Step 7: Final Upright Posture (Arms Balancing)", 
             waitSituation=True
         )
-        
 
 
     def lay_flat_position(self):
@@ -544,6 +547,59 @@ class PoppyTesterApp(QMainWindow):
             waitSituation=True
         )
         self.log_message("Surprise gesture completed.")
+
+    def squat_position(self):
+        self.log_message("Robot is going into a Squat position...")
+        target_step_1 = {
+            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0, 
+            'abs_y': 0.0, 'bust_y': 0.0,
+            'head_y': 0.0,
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_1, 
+            duration=1.5, 
+            movement_name="Step 1: Balance Prep (Arms Forward)", 
+            waitSituation=True
+        )
+
+        target_step_2 = {
+            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+            'abs_y': 0.0, 'bust_y': 0.0,
+            
+            'l_hip_y': -40.0, 'r_hip_y': -40.0,
+            'l_knee_y': 60.0, 'r_knee_y': 60.0,
+            'l_ankle_y': -20.0, 'r_ankle_y': -20.0
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_2, 
+            duration=2.0, 
+            movement_name="Step 2: Half Squat", 
+            waitSituation=True
+        )
+
+        target_step_3 = {
+            'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
+            'abs_y': 0.0, 'bust_y': 0.0,
+            'head_y': 0.0,                        
+            
+            'l_hip_y': -75.0, 'r_hip_y': -75.0,
+            'l_knee_y': 110.0, 'r_knee_y': 110.0,
+            
+            'l_ankle_y': -35.0, 'r_ankle_y': -35.0 
+        }
+        
+        self.controller.motor_movement_go_to(
+            logFunction=self.log_message, 
+            target_angles=target_step_3, 
+            duration=2.5, 
+            movement_name="Step 3: Deep Squat", 
+            waitSituation=True
+        )
+        self.log_message("Squat position completed.")
 
        
         
