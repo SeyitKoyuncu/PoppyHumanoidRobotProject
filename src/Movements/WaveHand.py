@@ -1,13 +1,23 @@
 import time
 import math
 from pypot.creatures import PoppyTorso
-from Controllers.MotorRelaxController import relax_motors
+
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+sys.path.append(root_dir)
+
+from src.Controllers.MotorRelaxController import relax_motors
 
 class WaveMotion:
     """A class containing smooth movement trajectories for the Poppy Torso."""
     
     def __init__(self, robot):
         self.robot = robot
+        print("Ensuring all motors start in relaxed mode...")
+        for m in self.robot.motors:
+            m.compliant = True
         # We define the specific motors needed for the left arm gesture.
         # Since there is no wrist joint, 'l_arm_z' will rotate the whole forearm.
         self.left_arm_motors = ['l_shoulder_y', 'l_shoulder_x', 'l_arm_z', 'l_elbow_y']
@@ -75,11 +85,7 @@ if __name__ == '__main__':
     try:
         # Initialize Poppy Torso with camera disabled to prevent port locks
         poppy = PoppyTorso(check_full_config=False, camera='dummy')
-        
-        print("Ensuring all motors start in relaxed mode...")
-        for m in poppy.motors:
-            m.compliant = True
-            
+                    
         # Run the waving sequence
         action = WaveMotion(poppy)
         #ElbowTest()
