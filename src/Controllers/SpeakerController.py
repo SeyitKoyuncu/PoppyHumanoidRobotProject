@@ -1,4 +1,10 @@
+import os
+
+os.environ['ALSA_CARD'] = '3'
+os.environ['ALSA_PCM_CARD'] = '3'
+
 import pyttsx3
+
 
 class SpeakerController:
     def __init__(self, rate: int = 150, volume: float = 1.0):

@@ -117,6 +117,7 @@ class RobotController:
             logFunction(f"Error moving {motor}: {str(e)}")
 
     def motor_movement_go_to(self, logFunction, target_angles, duration, movement_name, waitSituation=True, process_events_callback=None, torque_limit=None):
+
         # ... (The preparation phase can remain the same, where you find the motors and set compliant=False) ...
         active_motors = []
         for motor_name, target_angle in target_angles.items():
@@ -176,7 +177,6 @@ class RobotController:
 
         logFunction(f"{movement_name} completed smoothly.")
 
-    
     def stand_straight(robot, duration=3.0):
         print("1. Enabling motor torque (Disabling compliance)...")
         # Make all motors stiff and hold their positions
@@ -191,11 +191,10 @@ class RobotController:
         print("2. Moving to the balanced standing position...")
     # Zero angles to keep Poppy's legs and torso perfectly straight
         standing_position = {
-            'l_hip_x': 0, 'l_hip_y': 0, 'l_hip_z': 0,  # Left hip
-            'r_hip_x': 0, 'r_hip_y': 0, 'r_hip_z': 0,  # Right hip
-            'l_knee_y': 0, 'r_knee_y': 0,              # Knees
-            'l_ankle_y': 0, 'r_ankle_y': 0,            # Ankles
-            'bust_y': 0, 'bust_x': 0                   # Torso
+            'head_y': 0.0,
+            'l_arm_z': 0.0,
+            'r_arm_z': 0.0
+
     }
     
     # Execute the movement smoothly over the specified duration (3 seconds)
@@ -205,5 +204,5 @@ class RobotController:
 
 # How to use it:
 # from pypot.creatures import PoppyHumanoid
-    poppy = PoppyHumanoid()
+    poppy = PoppyHumanoid(camera='dummy')
     stand_straight(poppy)

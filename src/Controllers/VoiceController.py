@@ -15,7 +15,6 @@ class VoiceController:
         
         print("--- Available Microphone Devices ---")
         mic_names = sr.Microphone.list_microphone_names()
-        
         device_index = self._find_microphone_index(target_mic_name, mic_names)
         
         if device_index is not None:
@@ -67,10 +66,14 @@ class VoiceController:
             return self._match_intent(transcribed_text)
 
         except sr.WaitTimeoutError:
+            print("Time out. No speech detected within the timeout period.")
             return RobotAction.SILENCE_OR_ERROR
         except sr.UnknownValueError:
+            print("Speech recognized but not understood (could be noise).")
             return RobotAction.UNKNOWN_COMMAND
         except sr.RequestError:
+            print("Cannot access Google API.")
             return RobotAction.SILENCE_OR_ERROR
-        except Exception:
+        except Exception as e:
+            print(f"Unexpected error occurred: {e}")
             return RobotAction.SILENCE_OR_ERROR
