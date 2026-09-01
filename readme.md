@@ -9,6 +9,7 @@ source robot_env/bin/activate -> activate virtual environment
 
 sudo pkill -9 -f python
 sudo fuser -k /dev/ttyACM0
+sudo fuser -k /dev/ttyACM1
 
 from pypot.creatures import PoppyHumanoid
 poppy = PoppyHumanoid()

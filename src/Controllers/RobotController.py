@@ -13,7 +13,7 @@ class RobotController:
         # Holder for logging function, defaults to print if not provided
         self.log = log_callback if log_callback else print
 
-    def connect(self, is_simulation=True):
+    def connect(self, is_simulation=True, is_camera_dummy=True):
         if PoppyHumanoid is None:
             self.log("ERROR: 'pypot' library not found.")
             return False
@@ -22,7 +22,7 @@ class RobotController:
             if is_simulation:
                 self.robot = PoppyHumanoid(simulator='vrep')
             else:
-                self.robot = PoppyHumanoid()
+                self.robot = PoppyHumanoid(camera='dummy' if is_camera_dummy else None)
             return True
         except Exception as e:
             self.log(f"Connection failed: {str(e)}")
@@ -46,6 +46,31 @@ class RobotController:
         if self.robot:
             return self.robot.motors
         return []
+
+    def reset_all_motors_to_zero(self, duration=3.0, process_events_callback=None, exclude_motors=None):
+        """Resets all motors to 0 degrees using a smooth cosine trajectory."""
+        self.log("Starting to reset all motors to zero degrees...")
+
+        motor_names = self.get_motor_names()
+
+        if not motor_names:
+            self.log("WARNING: No motors found to reset. Is the robot connected?")
+            return
+
+        target_angles = {
+            motor_name: (10.0 if motor_name == 'r_elbow_y' else 0.0)
+            for motor_name in motor_names 
+            if motor_name not in exclude_motors
+        }
+        
+        self.motor_movement_go_to(
+            logFunction=self.log,
+            target_angles=target_angles,
+            duration=duration,
+            movement_name="Reset_All_Motors_To_Zero",
+            waitSituation=True,
+            process_events_callback=process_events_callback
+        )
 
     def test_single_motor_smoothly(self, motor, process_events_callback=None):
         """Moves a single motor using a cosine trajectory."""
@@ -116,7 +141,7 @@ class RobotController:
         except Exception as e:
             logFunction(f"Error moving {motor}: {str(e)}")
 
-    def motor_movement_go_to(self, logFunction, target_angles, duration, movement_name, waitSituation=True, process_events_callback=None, torque_limit=None):
+    def motor_movement_go_to(self, target_angles, duration, movement_name, logFunction = None, waitSituation=True, process_events_callback=None, torque_limit=None):
 
         # ... (The preparation phase can remain the same, where you find the motors and set compliant=False) ...
         active_motors = []
@@ -138,7 +163,8 @@ class RobotController:
                 })
         
         if not active_motors:
-            logFunction(f"No valid motors found for {movement_name}.")
+            if logFunction:
+                logFunction(f"No valid motors found for {movement_name}.")  
             return
 
         # 2. MOVEMENT PHASE (REAL-TIME LOOP)
@@ -175,34 +201,7 @@ class RobotController:
         if waitSituation:
             time.sleep(0.1)
 
-        logFunction(f"{movement_name} completed smoothly.")
+        if logFunction:
+            logFunction(f"{movement_name} completed smoothly.")
 
-    def stand_straight(robot, duration=3.0):
-        print("1. Enabling motor torque (Disabling compliance)...")
-        # Make all motors stiff and hold their positions
-        for m in robot.motors:
-            m.compliant = False
-        
-    # Optional: Increase P-gain to reduce wobble/bending in the legs
-    # Only applies to MX series motors, remove the '#' to enable if needed.
-    # for m in robot.legs:
-    #     m.pid = (64, 0, 0) 
 
-        print("2. Moving to the balanced standing position...")
-    # Zero angles to keep Poppy's legs and torso perfectly straight
-        standing_position = {
-            'head_y': 0.0,
-            'l_arm_z': 0.0,
-            'r_arm_z': 0.0
-
-    }
-    
-    # Execute the movement smoothly over the specified duration (3 seconds)
-        robot.goto_position(standing_position, duration, wait=True)
-    
-        print("The robot is now standing, stable, and ready to move")
-
-# How to use it:
-# from pypot.creatures import PoppyHumanoid
-    poppy = PoppyHumanoid(camera='dummy')
-    stand_straight(poppy)
