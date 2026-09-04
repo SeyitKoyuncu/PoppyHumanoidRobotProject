@@ -7,7 +7,7 @@ import pyttsx3
 
 
 class SpeakerController:
-    def __init__(self, rate: int = 150, volume: float = 1.0):
+    def __init__(self, rate: int = 150, volume: float = 5.0):
         # Initialize pyttsx3 (Offline TTS Engine)
         self.engine = pyttsx3.init()
         
