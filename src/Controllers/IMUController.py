@@ -45,9 +45,12 @@ class IMUController:
             return False
 
     def _update_loop(self):
-        """Reads and parses the latest line from the serial port."""
         while self.is_running and self.serial_conn and self.serial_conn.is_open:
             try:
+                # Clear the buffer
+                if self.serial_conn.in_waiting > 150:
+                    self.serial_conn.reset_input_buffer()
+
                 line = self.serial_conn.readline().decode('utf-8', errors='ignore').strip()
                 if line.startswith("#YPR="):
                     parts = line.replace("#YPR=", "").split(",")
@@ -55,9 +58,10 @@ class IMUController:
                         self.latest_yaw = float(parts[0])
                         self.latest_pitch = float(parts[1])
                         self.latest_roll = float(parts[2])
-            except Exception:
+            except Exception as e:
+                print("IMU error : ", e)
                 pass
-            time.sleep(0.005)
+            time.sleep(0.002)
 
     def calibrate_standing_reference(self, sample_duration=1.0):
         """Calibrates zero reference angle while the robot is standing upright."""
@@ -75,6 +79,10 @@ class IMUController:
     def get_pitch_error(self):
         """Returns the deviation from the reference standing posture (Error Angle)."""
         return self.latest_pitch - self.pitch_offset
+    
+    def printValues(self):
+        """Prints the latest Yaw, Pitch, Roll values."""
+        print(f"Yaw: {self.latest_yaw:.2f}°, Pitch: {self.latest_pitch:.2f}°, Roll: {self.latest_roll:.2f}°")
 
     def disconnect(self):
         self.is_running = False

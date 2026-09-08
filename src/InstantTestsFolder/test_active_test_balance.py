@@ -256,6 +256,6 @@ def run_multi_joint_balance(duration=35.0, kp=1.4, kd=0.04):
         imu.disconnect()
         controller.disconnect()
         force_relax_motors()
-        print("System Closed motors going to stop.")
+        print("System Closed motors going to stop")
 if __name__ == '__main__':
     run_multi_joint_balance(duration=45.0, kp=0.35, kd=0.03)
