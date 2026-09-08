@@ -4,7 +4,7 @@ from typing import Optional
 
 class RobotAction(Enum):
     HELLO = 1
-    SIT_DOWN = 2
+    HOWAREU = 2
     STAND_UP = 3
     UNKNOWN_COMMAND = 4
     SILENCE_OR_ERROR = 5
@@ -31,11 +31,14 @@ class VoiceController:
         text = transcribed_text.lower().strip()
 
         hello_keywords = ["hello", "hi", "hey", "greetings"]
+        howareu_keywords = ["how are you", "how do you do", "Whats up", "how's it going"]
         sit_keywords = ["sit", "sit down", "take a seat"]
         stand_keywords = ["stand", "stand up", "get up"]
 
         if any(keyword in text for keyword in hello_keywords):
             return RobotAction.HELLO
+        if any(keyword in text for keyword in howareu_keywords):
+            return RobotAction.HOWAREU
         
         if any(keyword in text for keyword in sit_keywords):
             return RobotAction.SIT_DOWN

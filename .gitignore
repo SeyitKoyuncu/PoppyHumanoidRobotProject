@@ -3,3 +3,7 @@ _pyache_
 \*.pyc
 
 tempCodeRunnerFile.py
+
+# Ignore environment variables
+.env
+.env.local

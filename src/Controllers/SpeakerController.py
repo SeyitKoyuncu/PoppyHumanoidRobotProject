@@ -1,7 +1,7 @@
 import os
 
-os.environ['ALSA_CARD'] = '3'
-os.environ['ALSA_PCM_CARD'] = '3'
+os.environ['ALSA_CARD'] = '2'
+os.environ['ALSA_PCM_CARD'] = '2'
 
 import pyttsx3
 

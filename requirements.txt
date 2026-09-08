@@ -3,3 +3,5 @@ poppy-humanoid
 pyaudio
 SpeechRecognition
 pyttsx3
+OpenAI
+dotenv
