@@ -3,8 +3,8 @@ import os
 import time
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QRadioButton, QComboBox, 
-                             QTextEdit, QLabel, QGroupBox, QDoubleSpinBox) # QDoubleSpinBox EKLENDI
-                             
+                             QTextEdit, QLabel, QGroupBox, QDoubleSpinBox)
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, "../../"))
 if root_dir not in sys.path:
@@ -12,6 +12,7 @@ if root_dir not in sys.path:
 
 from src.PoppyTestGUI.virtual_face import VirtualFace
 from src.Controllers.RobotController import RobotController
+
 
 class PoppyTesterApp(QMainWindow):
     def __init__(self):
@@ -22,7 +23,7 @@ class PoppyTesterApp(QMainWindow):
 
     def initUI(self):
         self.setWindowTitle("Poppy Humanoid Control Center")
-        self.resize(750, 650)
+        self.resize(800, 700)
 
         main_widget = QWidget()
         main_layout = QHBoxLayout() 
@@ -74,7 +75,7 @@ class PoppyTesterApp(QMainWindow):
         custom_angle_layout.addWidget(QLabel("Target Angle:"))
         
         self.spin_angle = QDoubleSpinBox()
-        self.spin_angle.setRange(-180.0, 180.0) # Motor açı sınırları
+        self.spin_angle.setRange(-180.0, 180.0)
         self.spin_angle.setValue(0.0)
         
         self.btn_goto = QPushButton("Go To Angle")
@@ -87,21 +88,19 @@ class PoppyTesterApp(QMainWindow):
         
         custom_angle_layout.addWidget(self.spin_angle)
         custom_angle_layout.addWidget(self.btn_goto)
-        
         control_layout.addLayout(custom_angle_layout)
         
-        # Added Line For Visual Separation
+        # Line For Visual Separation
         line = QWidget()
         line.setFixedHeight(1)
         line.setStyleSheet("background-color: #c0c0c0;")
         control_layout.addWidget(line)
 
-        # Rady Position Buttons
+        # Ready Position Buttons
         control_layout.addWidget(QLabel("Preset Poses:"))
 
         self.btn_sit = QPushButton("Sit Down")
         self.btn_sit.clicked.connect(self.sit_down)
-
 
         self.btn_rest = QPushButton("Set Rest (Lying) Position")
         self.btn_rest.clicked.connect(self.set_rest_position)
@@ -124,8 +123,8 @@ class PoppyTesterApp(QMainWindow):
         control_layout.addWidget(self.btn_standup_from_squat)
         control_group.setLayout(control_layout)
         left_panel.addWidget(control_group)
-        # -----------------------------------------------------
 
+        # System Logs
         log_group = QGroupBox("System Logs")
         log_layout = QVBoxLayout()
         self.log_screen = QTextEdit()
@@ -134,12 +133,11 @@ class PoppyTesterApp(QMainWindow):
         log_group.setLayout(log_layout)
         left_panel.addWidget(log_group)
 
-        # Right panel for virtual emotion face
+        # Right panel for virtual emotion face & IK Controls
         right_panel = QVBoxLayout()
         
         face_group = QGroupBox("Virtual Emotion Face")
         face_layout = QVBoxLayout()
-        
         self.virtual_face = VirtualFace()
         face_layout.addWidget(self.virtual_face)
         
@@ -151,8 +149,70 @@ class PoppyTesterApp(QMainWindow):
 
         face_layout.addLayout(btn_layout)
         face_group.setLayout(face_layout)
-        
         right_panel.addWidget(face_group)
+
+        # =====================================================
+        # INVERSE KINEMATICS CONTROL GROUP
+        # =====================================================
+        ik_group = QGroupBox("Inverse Kinematics (Arm Control)")
+        ik_layout = QVBoxLayout()
+
+        # Arm selection
+        arm_sel_layout = QHBoxLayout()
+        arm_sel_layout.addWidget(QLabel("Arm:"))
+        self.combo_ik_arm = QComboBox()
+        self.combo_ik_arm.addItem("Right Arm (r_arm)", "r_arm")
+        self.combo_ik_arm.addItem("Left Arm (l_arm)", "l_arm")
+        arm_sel_layout.addWidget(self.combo_ik_arm)
+        ik_layout.addLayout(arm_sel_layout)
+
+        # Cartesian Targets (X, Y, Z in meters)
+        coords_layout = QHBoxLayout()
+        
+        coords_layout.addWidget(QLabel("X:"))
+        self.spin_ik_x = QDoubleSpinBox()
+        self.spin_ik_x.setRange(-1.0, 1.0)
+        self.spin_ik_x.setSingleStep(0.01)
+        self.spin_ik_x.setDecimals(3)
+        self.spin_ik_x.setValue(0.150)
+        coords_layout.addWidget(self.spin_ik_x)
+
+        coords_layout.addWidget(QLabel("Y:"))
+        self.spin_ik_y = QDoubleSpinBox()
+        self.spin_ik_y.setRange(-1.0, 1.0)
+        self.spin_ik_y.setSingleStep(0.01)
+        self.spin_ik_y.setDecimals(3)
+        self.spin_ik_y.setValue(-0.150)
+        coords_layout.addWidget(self.spin_ik_y)
+
+        coords_layout.addWidget(QLabel("Z:"))
+        self.spin_ik_z = QDoubleSpinBox()
+        self.spin_ik_z.setRange(-1.0, 1.0)
+        self.spin_ik_z.setSingleStep(0.01)
+        self.spin_ik_z.setDecimals(3)
+        self.spin_ik_z.setValue(0.050)
+        coords_layout.addWidget(self.spin_ik_z)
+
+        ik_layout.addLayout(coords_layout)
+
+        # IK Buttons
+        ik_btn_layout = QHBoxLayout()
+        self.btn_get_fk = QPushButton("Get Hand Pos")
+        self.btn_get_fk.clicked.connect(self.read_hand_position)
+        self.btn_get_fk.setEnabled(True)
+
+        self.btn_move_ik = QPushButton("Move Hand (IK)")
+        self.btn_move_ik.clicked.connect(self.run_ik_move)
+        self.btn_move_ik.setEnabled(True)
+
+        ik_btn_layout.addWidget(self.btn_get_fk)
+        ik_btn_layout.addWidget(self.btn_move_ik)
+        ik_layout.addLayout(ik_btn_layout)
+
+        ik_group.setLayout(ik_layout)
+        right_panel.addWidget(ik_group)
+        # =====================================================
+
         right_panel.addStretch(1) 
 
         main_layout.addLayout(left_panel, stretch=2)
@@ -173,6 +233,32 @@ class PoppyTesterApp(QMainWindow):
         self.log_message(f"Emotion changed to: {emotion_type.upper()}")
         self.virtual_face.change_emotion(emotion_type)
 
+    def read_hand_position(self):
+        selected_arm = self.combo_ik_arm.currentData()
+        pos = self.controller.get_arm_cartesian_position(selected_arm)
+        if pos:
+            self.spin_ik_x.setValue(pos[0])
+            self.spin_ik_y.setValue(pos[1])
+            self.spin_ik_z.setValue(pos[2])
+            self.log_message(f"Current {selected_arm} Pos: X={pos[0]:.3f}, Y={pos[1]:.3f}, Z={pos[2]:.3f} m")
+        else:
+            self.log_message(f"Could not read Cartesian coordinates for {selected_arm}.")
+
+    def run_ik_move(self):
+        selected_arm = self.combo_ik_arm.currentData()
+        target_xyz = [
+            self.spin_ik_x.value(),
+            self.spin_ik_y.value(),
+            self.spin_ik_z.value()
+        ]
+        
+        self.controller.move_arm_cartesian(
+            arm_name=selected_arm,
+            target_xyz=target_xyz,
+            duration=2.5,
+            process_events_callback=QApplication.processEvents
+        )
+
     def connect_robot(self):
         self.log_message("Connecting... Please wait.")
         QApplication.processEvents()
@@ -189,6 +275,8 @@ class PoppyTesterApp(QMainWindow):
             self.btn_sit.setEnabled(True)
             self.btn_rest.setEnabled(True)
             self.btn_flat.setEnabled(True)
+            self.btn_get_fk.setEnabled(True)
+            self.btn_move_ik.setEnabled(True)
             self.update_motor_combobox()
 
     def disconnect_robot(self):
@@ -201,6 +289,8 @@ class PoppyTesterApp(QMainWindow):
         self.btn_sit.setEnabled(False)
         self.btn_rest.setEnabled(False)
         self.btn_flat.setEnabled(False)
+        self.btn_get_fk.setEnabled(False)
+        self.btn_move_ik.setEnabled(False)
         self.combo_motors.clear()
         self.combo_motors.addItem("All Motors (Sequentially)")
 
@@ -240,30 +330,16 @@ class PoppyTesterApp(QMainWindow):
 
     def sit_down(self):
         target_step_1 = {
-            'l_hip_y': -90.0, 
-            'r_hip_y': -90.0,
-            
-            'l_knee_y': 0.0, 
-            'r_knee_y': 0.0,
-            'l_ankle_y': 0.0,
-            'r_ankle_y': 0.0,
+            'l_hip_y': -90.0, 'r_hip_y': -90.0,
+            'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'l_ankle_y': 0.0, 'r_ankle_y': 0.0,
             'l_hip_x': 0.0, 'r_hip_x': 0.0,
             'l_hip_z': 0.0, 'r_hip_z': 0.0,
-            
-            #Straighten the torso (abs and bust at 0.0)
-            'abs_y': 0.0,  
-            'bust_y': 0.0,
-            
-            #Lift the head and look forward
+            'abs_y': 0.0, 'bust_y': 0.0,
             'head_y': 0.0, 
-            
-            #Arms are free to both sides (Shoulders and elbows are straight)
-            'l_shoulder_y': 0.0, 
-            'r_shoulder_y': 0.0,
-            'l_elbow_y': 0.0, 
-            'r_elbow_y': 0.0,
+            'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0,
+            'l_elbow_y': 0.0, 'r_elbow_y': 0.0,
         }
-        
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
             target_angles=target_step_1, 
@@ -271,11 +347,9 @@ class PoppyTesterApp(QMainWindow):
             movement_name="Step 9: Open to L-Sit Position", 
             waitSituation=True
         )
-       # Only fold the torso to the maximum don't bend hips yet.
+
         target_step_2 = {
-            #Hips are 0.0, legs are 0.0 (legs are straight and heavy like a club on the ground)
-            'l_hip_y': 0.0, 
-            'r_hip_y': 0.0,
+            'l_hip_y': 0.0, 'r_hip_y': 0.0,
             'l_knee_y': 0.0, 'r_knee_y': 0.0,
             
             # We only tilt the torso forward (to prevent falling backward)
@@ -284,38 +358,23 @@ class PoppyTesterApp(QMainWindow):
             'head_y': 40.0, # We should tilt the head forward so that the weight shifts to the front
             
             'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
-            
             'l_hip_x': 0.0, 'r_hip_x': 0.0,
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_2, 
-            duration=1.0, 
-            movement_name="Step 2: Max Torso Crunch (Legs Flat)", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_step_2, 
+            duration=1.0, movement_name="Step 2: Max Torso Crunch", waitSituation=True
         )
+
         target_step_3 = {
-            # The torso is 70 degrees forward (to prevent falling backward)
-            'abs_y': 70.0,  #70
-            'bust_y': 70.0, #70
-            'head_y': 40.0, #40
+            'abs_y': 70.0, 'bust_y': 70.0, 'head_y': 40.0,
             'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
-            
-            # Now hips are 90. Since the torso is already forward, it cannot fall backward.
-            'l_hip_y': -90.0,
-            'r_hip_y': -90.0,
-            
+            'l_hip_y': -90.0, 'r_hip_y': -90.0,
             'l_knee_y': 0.0, 'r_knee_y': 0.0,
             'l_hip_x': 0.0, 'r_hip_x': 0.0,
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_3, 
-            duration=3.0, 
-            movement_name="Step 3: Engage Hips to Sit", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_step_3, 
+            duration=3.0, movement_name="Step 3: Engage Hips to Sit", waitSituation=True
         )
         target_step_4 = {
                     # The torso is 70 degrees forward (to prevent falling backward)
@@ -414,56 +473,34 @@ class PoppyTesterApp(QMainWindow):
 
     def lay_flat_position(self):
         self.log_message("Robot is performing Trust Fall...")
-        target_fall_backward = {
-            'l_knee_y': 20.0, 
-        }
-        
+        target_fall_backward = {'l_knee_y': 20.0}
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_fall_backward, 
-            duration=0.5, 
-            movement_name="Step 1: Kick Legs Forward & Fall", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_fall_backward, 
+            duration=0.5, movement_name="Step 1: Kick Legs & Fall", waitSituation=True
         )
-
         time.sleep(2) 
 
         target_flat = {
-            'l_hip_y': 0.0, 'r_hip_y': 0.0,
-            'l_knee_y': 0.0, 'r_knee_y': 0.0,
-            'l_ankle_y': 0.0, 'r_ankle_y': 0.0,
-            'abs_y': 0.0, 'bust_y': 0.0,
-            'head_y': 0.0,
-            'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0,
+            'l_hip_y': 0.0, 'r_hip_y': 0.0, 'l_knee_y': 0.0, 'r_knee_y': 0.0,
+            'l_ankle_y': 0.0, 'r_ankle_y': 0.0, 'abs_y': 0.0, 'bust_y': 0.0,
+            'head_y': 0.0, 'l_shoulder_y': 0.0, 'r_shoulder_y': 0.0,
             'l_elbow_y': 0.0, 'r_elbow_y': 0.0,
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_flat, 
-            duration=1.5, 
-            movement_name="Step 2: Lay Flat on Ground", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_flat, 
+            duration=1.5, movement_name="Step 2: Lay Flat on Ground", waitSituation=True
         )
 
     def raise_both_arms_and_wait(self, cheer_count=3):
-
         target_arms_up = {
-            'l_shoulder_x': 90.0,
-            'l_arm_z': 90.0,
-            'l_elbow_y': -90.0,
-            'r_shoulder_x': -90.0,
-            'r_arm_z': -90.0,
-            'r_elbow_y': -90.0
+            'l_shoulder_x': 90.0, 'l_arm_z': 90.0, 'l_elbow_y': -90.0,
+            'r_shoulder_x': -90.0, 'r_arm_z': -90.0, 'r_elbow_y': -90.0
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_arms_up, 
-            duration=2, 
-            movement_name="Step 1: Raise Both Arms", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_arms_up, 
+            duration=2, movement_name="Step 1: Raise Both Arms", waitSituation=True
         )
+
         target_cheer_1 = {'l_elbow_y': -60.0, 'r_elbow_y': -60.0}
         target_cheer_2 = {'l_elbow_y': -120.0, 'r_elbow_y': -120.0}
 
@@ -476,56 +513,30 @@ class PoppyTesterApp(QMainWindow):
                 waitSituation=True
             )
             self.controller.motor_movement_go_to(
-                logFunction=self.log_message, 
-                target_angles=target_cheer_2, 
-                duration=2, 
-                movement_name=f"Cheer Wave Out ({i+1})", 
-                waitSituation=True
+                logFunction=self.log_message, target_angles=target_cheer_2, 
+                duration=2, movement_name=f"Cheer Wave Out ({i+1})", waitSituation=True
             )
+
         target_arms_down = {
-            'l_shoulder_x': 0.0,
-            'l_arm_z': 0.0,
-            'l_elbow_y': 0.0,
-            'r_shoulder_x': 0.0,
-            'r_arm_z': 0.0,
-            'r_elbow_y': 0.0
+            'l_shoulder_x': 0.0, 'l_arm_z': 0.0, 'l_elbow_y': 0.0,
+            'r_shoulder_x': 0.0, 'r_arm_z': 0.0, 'r_elbow_y': 0.0
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_arms_down, 
-            duration=2, 
-            movement_name="Step 2: Lower Arms to Default", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_arms_down, 
+            duration=2, movement_name="Step 2: Lower Arms to Default", waitSituation=True
         )
         self.log_message("Arms motion completed.")
 
     def surprise_hands_to_mouth(self):
         self.log_message("Robot is performing a surprise gesture...")
-        
         target_surprise = {
-
-            'l_shoulder_y': -100.0,
-            'l_shoulder_x': 40.0,
-            'l_arm_z': -40.0,
-            'l_elbow_y': -150.0,
-            
-            'r_shoulder_y': -100.0, 
-            'r_shoulder_x': -50.0, 
-            'r_arm_z': 40.0,
-            'r_elbow_y': -150.0,
-
+            'l_shoulder_y': -100.0, 'l_shoulder_x': 40.0, 'l_arm_z': -40.0, 'l_elbow_y': -150.0,
+            'r_shoulder_y': -100.0, 'r_shoulder_x': -50.0, 'r_arm_z': 40.0, 'r_elbow_y': -150.0,
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_surprise, 
-            duration=0.6, 
-            movement_name="Step 1: Surprise (Hands to mouth)", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_surprise, 
+            duration=0.6, movement_name="Step 1: Surprise (Hands to mouth)", waitSituation=True
         )
-
-        self.log_message("Holding surprise position...")
         time.sleep(2.0)
 
         target_default = {
@@ -533,13 +544,9 @@ class PoppyTesterApp(QMainWindow):
             'r_shoulder_y': 0.0, 'r_shoulder_x': 0.0, 'r_arm_z': 0.0, 'r_elbow_y': 0.0,
             'head_y': 0.0
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_default, 
-            duration=1.5, 
-            movement_name="Step 2: Return to default", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_default, 
+            duration=1.5, movement_name="Step 2: Return to default", waitSituation=True
         )
         self.log_message("Surprise gesture completed.")
 
@@ -547,52 +554,35 @@ class PoppyTesterApp(QMainWindow):
         self.log_message("Robot is going into a Squat position...")
         target_step_1 = {
             'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0, 
-            'abs_y': 0.0, 'bust_y': 0.0,
-            'head_y': 0.0,
+            'abs_y': 0.0, 'bust_y': 0.0, 'head_y': 0.0,
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_1, 
-            duration=1.5, 
-            movement_name="Step 1: Balance Prep (Arms Forward)", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_step_1, 
+            duration=1.5, movement_name="Step 1: Balance Prep (Arms Forward)", waitSituation=True
         )
 
         target_step_2 = {
             'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
             'abs_y': 0.0, 'bust_y': 0.0,
-            
             'l_hip_y': -40.0, 'r_hip_y': -40.0,
             'l_knee_y': 60.0, 'r_knee_y': 60.0,
             'l_ankle_y': -20.0, 'r_ankle_y': -20.0
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_2, 
-            duration=2.0, 
-            movement_name="Step 2: Half Squat", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_step_2, 
+            duration=2.0, movement_name="Step 2: Half Squat", waitSituation=True
         )
 
         target_step_3 = {
             'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
-            'abs_y': 0.0, 'bust_y': 0.0,
-            'head_y': 0.0,                        
-            
+            'abs_y': 0.0, 'bust_y': 0.0, 'head_y': 0.0,
             'l_hip_y': -75.0, 'r_hip_y': -75.0,
             'l_knee_y': 110.0, 'r_knee_y': 110.0,
-            
             'l_ankle_y': -35.0, 'r_ankle_y': -35.0 
         }
-        
         self.controller.motor_movement_go_to(
-            logFunction=self.log_message, 
-            target_angles=target_step_3, 
-            duration=2.5, 
-            movement_name="Step 3: Deep Squat", 
-            waitSituation=True
+            logFunction=self.log_message, target_angles=target_step_3, 
+            duration=2.5, movement_name="Step 3: Deep Squat", waitSituation=True
         )
         self.log_message("Squat position completed.")
 
