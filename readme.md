@@ -162,6 +162,7 @@ The repository enforces separation between low-level hardware drivers, analytica
 ## Contact
 
 **Seyit Koyuncu**  
+**Senem Bilgin**  
 GitHub: [@SeyitKoyuncu](https://github.com/SeyitKoyuncu)
 [@senembilgin](https://github.com/senembilgin)  
 Repository: [PoppyHumanoidRobotProject](https://github.com/SeyitKoyuncu/PoppyHumanoidRobotProject)
