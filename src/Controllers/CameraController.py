@@ -86,7 +86,7 @@ class CameraController:
         and hardware release processes. Prints all outputs to the console.
         """
         print("\n" + "="*50)
-        print("📷 CAMERA CONTROLLER DIAGNOSTIC TEST 📷")
+        print("CAMERA CONTROLLER DIAGNOSTIC TEST")
         print(f"MODE: {'REAL ROBOT (pypot)' if self.is_robot else 'LOCAL PC (OpenCV)'}")
         print("="*50)
 

@@ -267,7 +267,7 @@ class PoppyTesterApp(QMainWindow):
         self.controller.motor_movement_go_to(
             logFunction=self.log_message, 
             target_angles=target_step_1, 
-            duration=2.5, #VERY IMPORTANT: This is a very important movement. The duration should be long (2.5 seconds) to prevent the robot from being thrown by momentum.
+            duration=2.5,
             movement_name="Step 9: Open to L-Sit Position", 
             waitSituation=True
         )
@@ -283,7 +283,6 @@ class PoppyTesterApp(QMainWindow):
             'bust_y': 70.0,
             'head_y': 40.0, # We should tilt the head forward so that the weight shifts to the front
             
-            # Kolları ileri fırlat
             'l_shoulder_y': -90.0, 'r_shoulder_y': -90.0,
             
             'l_hip_x': 0.0, 'r_hip_x': 0.0,
@@ -472,7 +471,7 @@ class PoppyTesterApp(QMainWindow):
             self.controller.motor_movement_go_to(
                 logFunction=self.log_message, 
                 target_angles=target_cheer_1, 
-                duration=1, # Süre kısa (0.3 sn) olduğu için hareket hızlı ve enerjik olur
+                duration=1,
                 movement_name=f"Cheer Wave In ({i+1})", 
                 waitSituation=True
             )

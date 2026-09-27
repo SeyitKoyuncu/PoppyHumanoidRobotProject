@@ -1,7 +1,20 @@
-PyQt5 pypot
+# Computer Vision, Math & Data
+numpy
+opencv-python
+matplotlib
+
+# Poppy Humanoid & Hardware Communication
+pypot
 poppy-humanoid
-pyaudio
+pyserial
+
+# Audio, Speech & AI Integration
+pygame
 SpeechRecognition
-pyttsx3
-OpenAI
-dotenv
+openai
+python-dotenv
+pyaudio
+pyttsx3>=2.90
+
+# GUI
+PyQt5

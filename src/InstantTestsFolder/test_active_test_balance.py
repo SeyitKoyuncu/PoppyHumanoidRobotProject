@@ -151,7 +151,7 @@ def run_balance_test(duration=30.0, kp=0.35, kd=0.03):
 def run_multi_joint_balance(duration=35.0, kp=1.4, kd=0.04):
     imu = IMUController()
     if not imu.connect():
-        print("[ERROR] IMU bağlantısı başarısız.")
+        print("[ERROR] Cant connect to the IMU.")
         return
 
     controller = RobotController()
