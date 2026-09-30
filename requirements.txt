@@ -7,6 +7,7 @@ matplotlib
 pypot
 poppy-humanoid
 pyserial
+ikpy
 
 # Audio, Speech & AI Integration
 pygame
